@@ -3270,39 +3270,63 @@
       });
     });
 
-    function buildInterleavedQuestions(list) {
+    function shuffleArrayInPlace(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = tmp;
+      }
+      return arr;
+    }
+
+    let sessionQuizSalt = Math.floor(Math.random() * 1000000) + 1;
+
+    function buildRandomizedQuizQuestions(list) {
+      sessionQuizSalt = Math.floor(Math.random() * 1000000) + 1;
       const byPlate = {};
       list.forEach(q => {
         if (!byPlate[q.plateKey]) byPlate[q.plateKey] = [];
         byPlate[q.plateKey].push(q);
       });
       const keys = Object.keys(byPlate);
+      keys.forEach(k => shuffleArrayInPlace(byPlate[k]));
+
       const out = [];
       let maxLen = Math.max(...keys.map(k => byPlate[k].length));
+      let lastPlateKey = null;
       for (let i = 0; i < maxLen; i++) {
-        keys.forEach(k => {
-          if (byPlate[k][i]) out.push(byPlate[k][i]);
+        const roundKeys = shuffleArrayInPlace(keys.filter(k => byPlate[k][i] !== undefined));
+        if (roundKeys.length > 1 && roundKeys[0] === lastPlateKey) {
+          const swapIdx = 1 + Math.floor(Math.random() * (roundKeys.length - 1));
+          const tmp = roundKeys[0];
+          roundKeys[0] = roundKeys[swapIdx];
+          roundKeys[swapIdx] = tmp;
+        }
+        roundKeys.forEach(k => {
+          out.push(byPlate[k][i]);
+          lastPlateKey = k;
         });
       }
       return out;
     }
 
-    let ALL_QUIZ_QUESTIONS = buildInterleavedQuestions(BASE_QUIZ_QUESTIONS);
+    let ALL_QUIZ_QUESTIONS = buildRandomizedQuizQuestions(BASE_QUIZ_QUESTIONS);
 
     function getMultipleChoiceOptions(q) {
       const plate = PLATE_CATALOG[q.plateKey];
       const samePlateOthers = plate.parts.filter(p => p.id !== q.targetId).map(p => p.name);
       const distractors = [];
-      let seed = q.uid.split("").reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+      let seed = (q.uid.split("").reduce((acc, ch) => (acc * 31 + ch.charCodeAt(0)) % 1000003, 0) + sessionQuizSalt) % 1000003;
       const pool = [...samePlateOthers];
       while (distractors.length < 3 && pool.length > 0) {
         const idx = seed % pool.length;
         distractors.push(pool.splice(idx, 1)[0]);
-        seed = (seed * 31 + 7) % 997;
+        seed = (seed * 37 + 19) % 1000003;
       }
       const choices = [q.term, ...distractors];
       for (let i = choices.length - 1; i > 0; i--) {
-        const j = (seed + i * 17) % (i + 1);
+        const j = (seed + i * 29) % (i + 1);
         const tmp = choices[i];
         choices[i] = choices[j];
         choices[j] = tmp;
@@ -3481,6 +3505,7 @@
         summary: "Contrasting the 1.5-story low-pitched gable Bungalow with battered piers against the 2.5-story cubic Foursquare with a pyramidal hipped roof."
       }
     ];
+    shuffleArrayInPlace(CONTRAST_PAIRS);
 
     // Complete 16-Domain Architectural Curriculum Taxonomy
     const TWELVE_DOMAINS = [
@@ -3718,7 +3743,7 @@
       quizZoomed: false,
       mobileClueExpanded: false,
       contrastIdx: 0,
-      contrastTargetSide: "A",
+      contrastTargetSide: Math.random() < 0.5 ? "A" : "B",
       contrastPeekAnnotated: false,
       atlasPlate: "portico",
       atlasSelectedId: "swag",
@@ -3874,13 +3899,13 @@
       }
       if (state.quizDeck === "styles_track") {
         const stylePlates = new Set(["three_houses", "styles_historic", "styles_modern", "commercial_civic", "vernacular_interiors", "islamic_courtyard"]);
-        return BASE_QUIZ_QUESTIONS.filter(q => stylePlates.has(q.plateKey));
+        return ALL_QUIZ_QUESTIONS.filter(q => stylePlates.has(q.plateKey));
       }
       if (state.quizDeck === "styles_both") {
         const chronoPlates = new Set(["styles_historic", "styles_modern"]);
-        return BASE_QUIZ_QUESTIONS.filter(q => chronoPlates.has(q.plateKey));
+        return ALL_QUIZ_QUESTIONS.filter(q => chronoPlates.has(q.plateKey));
       }
-      return BASE_QUIZ_QUESTIONS.filter(q => q.plateKey === state.quizDeck);
+      return ALL_QUIZ_QUESTIONS.filter(q => q.plateKey === state.quizDeck);
     }
 
     // Render Module 1: Interactive Quiz
@@ -4564,12 +4589,7 @@
       });
 
       document.getElementById("btn-quiz-shuffle").addEventListener("click", () => {
-        for (let i = ALL_QUIZ_QUESTIONS.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          const tmp = ALL_QUIZ_QUESTIONS[i];
-          ALL_QUIZ_QUESTIONS[i] = ALL_QUIZ_QUESTIONS[j];
-          ALL_QUIZ_QUESTIONS[j] = tmp;
-        }
+        ALL_QUIZ_QUESTIONS = buildRandomizedQuizQuestions(BASE_QUIZ_QUESTIONS);
         state.quizIdx = 0;
         state.quizAnswered = false;
         renderQuiz();
@@ -4647,11 +4667,13 @@
       });
       document.getElementById("btn-contrast-next").addEventListener("click", () => {
         state.contrastIdx = (state.contrastIdx + 1) % CONTRAST_PAIRS.length;
+        state.contrastTargetSide = Math.random() < 0.5 ? "A" : "B";
         state.contrastPeekAnnotated = false;
         renderContrast();
       });
       document.getElementById("btn-contrast-prev").addEventListener("click", () => {
         state.contrastIdx = (state.contrastIdx - 1 + CONTRAST_PAIRS.length) % CONTRAST_PAIRS.length;
+        state.contrastTargetSide = Math.random() < 0.5 ? "A" : "B";
         state.contrastPeekAnnotated = false;
         renderContrast();
       });
