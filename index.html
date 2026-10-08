@@ -1000,100 +1000,209 @@
       min-width: 230px;
     }
 
+    /* Mobile Hamburger Button & Slide-Over Menu Drawer (hidden on desktop) */
+    .mobile-hamburger-btn {
+      display: none;
+      appearance: none;
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border: 1.5px solid var(--border-strong);
+      border-radius: 8px;
+      padding: 0.32rem 0.6rem;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      align-items: center;
+      gap: 0.35rem;
+      touch-action: manipulation;
+    }
+
+    .mobile-status-chip {
+      display: none;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-rule);
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .mobile-drawer-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 14, 12, 0.55);
+      backdrop-filter: blur(2px);
+      z-index: 200;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .mobile-drawer-backdrop.open {
+      display: block;
+      opacity: 1;
+    }
+
+    .mobile-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: min(86vw, 330px);
+      background: var(--bg-card);
+      border-left: 1px solid var(--border-strong);
+      box-shadow: -8px 0 28px rgba(0, 0, 0, 0.35);
+      z-index: 201;
+      transform: translateX(102%);
+      transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 0.85rem;
+      gap: 0.85rem;
+    }
+
+    .mobile-drawer.open {
+      transform: translateX(0);
+    }
+
+    .mobile-drawer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid var(--border-rule);
+    }
+
+    .mobile-drawer-section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .mobile-drawer-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent-primary);
+    }
+
+    .mobile-drawer-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.32rem;
+    }
+
+    .mobile-drawer-btn {
+      appearance: none;
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border-rule);
+      border-radius: 8px;
+      padding: 0.52rem 0.68rem;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.4rem;
+    }
+
+    .mobile-drawer-btn.active {
+      background: var(--accent-soft);
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+      font-weight: 700;
+    }
+
+    .feedback-more-btn {
+      display: none;
+      appearance: none;
+      background: transparent;
+      border: 1px solid currentColor;
+      color: inherit;
+      border-radius: 5px;
+      padding: 0.1rem 0.4rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
     /* ============================================================================
        MOBILE & PHONE BROWSER UX OPTIMIZATIONS (<= 880px)
-       Engineered so the entire Quiz loop fits comfortably inside a 390x844 screen!
+       1. Hamburger Menu collapses all secondary top navigation & mode bars
+       2. Fixed Bottom Action Bar keeps Prev / Hint / Next Question always on screen
+       3. Floating Bottom Feedback Card never pushes buttons off-screen
        ============================================================================ */
     @media (max-width: 880px) {
       .studio-header {
-        padding: 0.38rem 0.65rem;
+        padding: 0.34rem 0.6rem;
         gap: 0.35rem;
       }
 
       .brand-mark {
-        width: 28px;
-        height: 28px;
-        font-size: 0.75rem;
+        width: 26px;
+        height: 26px;
+        font-size: 0.72rem;
       }
 
-      .brand-title-full {
-        display: none;
+      .brand-title-full,
+      .brand-subtitle,
+      .mastery-pill,
+      #desktop-theme-pills,
+      .mode-nav,
+      #quiz-inspector-card,
+      #btn-quiz-toggle-pins {
+        display: none !important;
       }
 
       .brand-title-short {
         display: inline;
         font-family: 'Instrument Serif', Georgia, serif;
-        font-size: 1.15rem;
+        font-size: 1.12rem;
       }
 
-      .brand-subtitle,
-      .mastery-bar-track,
-      .theme-label-text {
-        display: none;
-      }
-
-      .mastery-pill {
-        padding: 0.22rem 0.45rem;
-        font-size: 0.75rem;
-      }
-
-      .pill-btn {
-        padding: 0.28rem 0.46rem;
-        font-size: 0.75rem;
+      .mobile-hamburger-btn,
+      .mobile-status-chip {
+        display: inline-flex;
       }
 
       .workspace-shell {
-        padding: 0.4rem 0.5rem 1.25rem;
-      }
-
-      /* Compact Single-Row 4-Tab Bar on Mobile */
-      .mode-nav {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 0.28rem;
-        margin-bottom: 0.4rem;
-      }
-
-      .mode-tab {
-        padding: 0.34rem 0.2rem;
-        text-align: center;
-        align-items: center;
-        border-radius: 7px;
-      }
-
-      .mode-tab-kicker {
-        display: none;
-      }
-
-      .mode-tab-title {
-        font-size: 0.75rem;
-        line-height: 1.1;
+        padding: 0.32rem 0.45rem 4.5rem;
       }
 
       /* Single unified card flow on mobile */
       .studio-grid {
         display: flex;
         flex-direction: column;
-        gap: 0.4rem;
+        gap: 0.35rem;
       }
 
       .plate-card,
       .inspector-card {
         width: 100%;
-        padding: 0.5rem;
+        padding: 0.45rem;
         border-radius: 11px;
-        gap: 0.4rem;
+        gap: 0.35rem;
       }
 
       .plate-card {
         padding: 0;
       }
 
-      .score-strip {
-        padding-bottom: 0.35rem;
-      }
-
+      /* Ultra-compact plate header bar merged cleanly above the question prompt */
       .plate-header {
-        padding: 0.36rem 0.55rem;
+        padding: 0.28rem 0.55rem;
         flex-wrap: nowrap;
       }
 
@@ -1102,22 +1211,22 @@
       }
 
       .btn-secondary {
-        padding: 0.26rem 0.5rem;
-        min-height: 30px;
-        font-size: 0.75rem;
+        padding: 0.24rem 0.48rem;
+        min-height: 28px;
+        font-size: 0.74rem;
       }
 
       .plate-stage {
-        padding: 0.15rem 0.35rem;
+        padding: 0.1rem 0.3rem;
       }
 
-      /* Constrain square plate figure on mobile so Prompt + Drawing + Answer Choices + Next Button all stay above the fold! */
+      /* Generous drawing size that fills the mobile screen while fitting 100% above the Fixed Bottom Bar */
       .plate-figure {
-        max-width: min(100%, 38vh);
+        max-width: min(100%, 56vh);
       }
 
       .plate-figure.mc-mode-figure {
-        max-width: min(100%, 32vh);
+        max-width: min(100%, 44vh);
       }
 
       .plate-figure.zoomed {
@@ -1129,8 +1238,6 @@
         grid-template-columns: 1fr;
       }
 
-      /* Hide the 10-button desktop deck cloud on mobile; show compact native dropdown in score-strip */
-      #quiz-deck-pills,
       #atlas-plate-pills {
         display: none;
       }
@@ -1139,25 +1246,13 @@
         display: block;
       }
 
-      /* Single-row horizontal mode switcher on mobile */
-      #quiz-mode-pills {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        width: 100%;
-      }
-
-      #quiz-mode-pills .pill-btn {
-        font-size: 0.75rem;
-        padding: 0.3rem 0.2rem;
-      }
-
       .prompt-box {
-        padding: 0.45rem 0.65rem;
+        padding: 0.38rem 0.6rem;
       }
 
       .prompt-target-term {
-        font-size: 1.24rem;
-        margin-bottom: 0.08rem;
+        font-size: 1.18rem;
+        margin-bottom: 0.04rem;
       }
 
       .clue-toggle-btn {
@@ -1171,25 +1266,71 @@
       /* 2x2 grid for Multiple Choice buttons on mobile */
       .mc-options-grid {
         grid-template-columns: 1fr 1fr;
-        gap: 0.32rem;
+        gap: 0.3rem;
       }
 
       .mc-option-btn {
-        padding: 0.42rem 0.5rem;
-        font-size: 0.76rem;
-        min-height: 38px;
+        padding: 0.38rem 0.48rem;
+        font-size: 0.75rem;
+        min-height: 36px;
       }
 
-      .feedback-box {
-        padding: 0.5rem 0.65rem;
-        font-size: 0.78rem;
-        gap: 0.2rem;
+      /* Fixed Bottom Navigation Bar on Mobile: Prev / Hint / Next Question NEVER scroll off-screen! */
+      #quiz-action-bar,
+      #contrast-action-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 95;
+        background: var(--bg-card);
+        border-top: 1.5px solid var(--border-strong);
+        padding: 0.42rem 0.65rem calc(0.42rem + env(safe-area-inset-bottom, 0px));
+        box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.14);
+        margin: 0;
+      }
+
+      /* Floating Feedback Toast docked directly above the Fixed Bottom Navigation Bar on Mobile! */
+      #quiz-feedback-box.visible,
+      #contrast-feedback-box.visible {
+        position: fixed;
+        bottom: calc(52px + env(safe-area-inset-bottom, 0px));
+        left: 0.45rem;
+        right: 0.45rem;
+        z-index: 94;
+        padding: 0.48rem 0.65rem;
+        font-size: 0.76rem;
+        gap: 0.18rem;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.24);
+        border-width: 1.5px;
+      }
+
+      #quiz-feedback-box:not(.expanded-tip) #quiz-feedback-body,
+      #contrast-feedback-box:not(.expanded-tip) #contrast-feedback-body {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      #quiz-feedback-box:not(.expanded-tip) .field-spotter-note {
+        display: none;
+      }
+
+      .feedback-more-btn {
+        display: inline-flex;
       }
 
       .btn-primary {
         padding: 0.44rem 0.75rem;
         min-height: 36px;
         font-size: 0.78rem;
+      }
+
+      .btn-primary.next-ready {
+        background: var(--accent-correct);
+        border-color: var(--accent-correct);
+        color: #FFFFFF;
       }
 
       .vs-grid {
@@ -1256,7 +1397,7 @@
     </div>
 
     <div class="header-controls">
-      <!-- Spaced Repetition Mastery Progress -->
+      <!-- Spaced Repetition Mastery Progress (Desktop) -->
       <div class="mastery-pill" title="Terms mastered across all 12 axonometric plates (saved in browser)">
         <span id="mastery-count-text">&#9733; 0 / 94</span>
         <div class="mastery-bar-track">
@@ -1264,8 +1405,8 @@
         </div>
       </div>
 
-      <!-- Theme Reversibility Switcher -->
-      <div class="pill-group" role="group" aria-label="Surface & Ink Theme">
+      <!-- Theme Reversibility Switcher (Desktop) -->
+      <div class="pill-group" id="desktop-theme-pills" role="group" aria-label="Surface & Ink Theme">
         <button class="pill-btn active" data-theme-btn="vellum" id="btn-theme-vellum" title="Black technical ink on warm drafting vellum">
           <span>&#9728;&#65039;</span><span class="theme-label-text">Vellum</span>
         </button>
@@ -1276,8 +1417,109 @@
           <span>&#128208;</span><span class="theme-label-text">Blueprint</span>
         </button>
       </div>
+
+      <!-- Mobile Live Progress Chip & Hamburger Menu Trigger -->
+      <span class="mobile-status-chip" id="mobile-status-chip" title="Current question &amp; mastered terms">Q 1/94 &bull; &#9733; 0</span>
+      <button class="mobile-hamburger-btn" id="btn-mobile-menu" type="button" aria-label="Open Navigation &amp; Quiz Menu" aria-expanded="false">
+        <span>&#9776;</span><span>Menu</span>
+      </button>
     </div>
   </header>
+
+  <!-- Mobile Slide-Over Hamburger Menu Drawer -->
+  <div class="mobile-drawer-backdrop" id="mobile-drawer-backdrop"></div>
+  <aside class="mobile-drawer" id="mobile-drawer" aria-label="Navigation &amp; Quiz Settings">
+    <div class="mobile-drawer-header">
+      <div>
+        <div style="font-family:'Instrument Serif',serif; font-size:1.2rem; font-weight:600; line-height:1.1;">Studio Menu</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:var(--text-muted);" id="drawer-mastery-sub">&#9733; 0 / 94 Terms Mastered</div>
+      </div>
+      <button type="button" class="btn-secondary" id="btn-close-mobile-menu" style="padding:0.28rem 0.6rem; font-size:0.78rem;">&#10005; Close</button>
+    </div>
+
+    <!-- 1. Module Switcher -->
+    <div class="mobile-drawer-section">
+      <div class="mobile-drawer-label">01 &bull; Learning Module</div>
+      <div class="mobile-drawer-grid">
+        <button type="button" class="mobile-drawer-btn active" data-drawer-tab="quiz">
+          <span>&#127919; Visual Anatomy Quiz</span>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:0.7rem; opacity:0.8;">94 Pins</span>
+        </button>
+        <button type="button" class="mobile-drawer-btn" data-drawer-tab="contrast">
+          <span>&#9878;&#65039; Diagnostic Contrast Pairs</span>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:0.7rem; opacity:0.8;">16 Pairs</span>
+        </button>
+        <button type="button" class="mobile-drawer-btn" data-drawer-tab="atlas">
+          <span>&#128208; Paired Plate Atlas</span>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:0.7rem; opacity:0.8;">12 Plates</span>
+        </button>
+        <button type="button" class="mobile-drawer-btn" data-drawer-tab="taxonomy">
+          <span>&#128218; Full 12-Domain Syllabus</span>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:0.7rem; opacity:0.8;">12 Domains</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. Quiz Topic / Plate Deck -->
+    <div class="mobile-drawer-section">
+      <div class="mobile-drawer-label">02 &bull; Quiz Topic / Plate Deck</div>
+      <select id="mobile-drawer-deck-select" class="mobile-deck-select" style="display:block; width:100%; max-width:none; padding:0.5rem 0.6rem; font-size:0.8rem;" aria-label="Select Quiz Plate Deck">
+        <option value="all">All 12 Plates (94 Terms)</option>
+        <option value="unmastered">&#9733; Unmastered Queue</option>
+        <option value="styles_track">&#127963;&#65039; All Styles &amp; Typologies (33)</option>
+        <option value="styles_both">&#127963;&#65039; Chronological Styles IX &amp; X (16)</option>
+        <option value="portico">Plate I: Portico &amp; Swag (7)</option>
+        <option value="arches">Plate II: Arches &amp; Oriel (9)</option>
+        <option value="roofs">Plate III: Roofs &amp; Dormers (8)</option>
+        <option value="three_houses">Plate IV: Bungalow, Cottage &amp; Foursquare (6)</option>
+        <option value="curtain_wall">Plate V: Curtain Wall (6)</option>
+        <option value="orders">Plate VI: Orders &amp; Pilaster (7)</option>
+        <option value="fenestration">Plate VII: Mullion &amp; Door (8)</option>
+        <option value="structure">Plate VIII: Vaults &amp; Domes (8)</option>
+        <option value="styles_historic">Plate IX: Historic &amp; Victorian Styles (8)</option>
+        <option value="styles_modern">Plate X: Revival &amp; Modern Styles (8)</option>
+        <option value="commercial_civic">Plate XI: Commercial, Civic &amp; Sacred (10)</option>
+        <option value="vernacular_interiors">Plate XII: Vernacular &amp; Interiors (9)</option>
+      </select>
+      <button type="button" class="mobile-drawer-btn" id="btn-drawer-shuffle">
+        <span>&#128256; Shuffle Question Order</span>
+        <span style="font-family:'JetBrains Mono',monospace; font-size:0.7rem; opacity:0.75;">Randomize</span>
+      </button>
+    </div>
+
+    <!-- 3. Quiz Interaction Mode -->
+    <div class="mobile-drawer-section">
+      <div class="mobile-drawer-label">03 &bull; Quiz Question Mode</div>
+      <div class="mobile-drawer-grid">
+        <button type="button" class="mobile-drawer-btn active" data-drawer-quiz-mode="pinpoint">
+          <span>&#127919; Tap Pin on Drawing</span>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:0.68rem; opacity:0.8;">Visual</span>
+        </button>
+        <button type="button" class="mobile-drawer-btn" data-drawer-quiz-mode="reverse_mc">
+          <span>&#128269; Mystery Pin (?) &rarr; 4 Choices</span>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:0.68rem; opacity:0.8;">4-Way MC</span>
+        </button>
+        <button type="button" class="mobile-drawer-btn" data-drawer-quiz-mode="clue_mc">
+          <span>&#9889; Definition Clue &rarr; 4 Choices</span>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:0.68rem; opacity:0.8;">4-Way MC</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 4. Surface Theme & Pin Display -->
+    <div class="mobile-drawer-section">
+      <div class="mobile-drawer-label">04 &bull; Surface Theme &amp; Display</div>
+      <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0.32rem;">
+        <button type="button" class="mobile-drawer-btn active" style="justify-content:center; padding:0.45rem 0.35rem; font-size:0.75rem;" data-drawer-theme="vellum">&#9728;&#65039; Vellum</button>
+        <button type="button" class="mobile-drawer-btn" style="justify-content:center; padding:0.45rem 0.35rem; font-size:0.75rem;" data-drawer-theme="obsidian">&#127769; Dark</button>
+        <button type="button" class="mobile-drawer-btn" style="justify-content:center; padding:0.45rem 0.35rem; font-size:0.75rem;" data-drawer-theme="blueprint">&#128208; Blueprint</button>
+      </div>
+      <button type="button" class="mobile-drawer-btn" id="btn-drawer-toggle-pins">
+        <span>&#128290; Pin Badges on Drawing</span>
+        <span id="drawer-pins-status" style="font-family:'JetBrains Mono',monospace; font-size:0.7rem;">Numbers ON</span>
+      </button>
+    </div>
+  </aside>
 
   <!-- Main Workspace Container -->
   <main class="workspace-shell" id="workspace-shell">
@@ -1340,7 +1582,7 @@
           <div id="quiz-mobile-bottom-dock"></div>
         </div>
 
-        <!-- Right / Inspector Column (On desktop holds all controls; on mobile holds ultra-compact 2-row mode/deck bar) -->
+        <!-- Right / Inspector Column (On desktop holds all controls; on mobile hidden in favor of Hamburger Menu & Fixed Bottom Bar) -->
         <div class="inspector-card" id="quiz-inspector-card">
           <div class="score-strip">
             <span id="quiz-progress-text" style="font-weight:700;">Q 1 / 94</span>
@@ -1349,7 +1591,7 @@
             <select id="quiz-deck-select-mobile" class="mobile-deck-select" aria-label="Select Quiz Plate Deck">
               <option value="all">All 12 Plates (94)</option>
               <option value="unmastered">&#9733; Unmastered Queue</option>
-              <option value="styles_track">&#127963;&#65039; All Styles &amp; Typologies (41)</option>
+              <option value="styles_track">&#127963;&#65039; All Styles &amp; Typologies (33)</option>
               <option value="styles_both">&#127963;&#65039; Chronological Styles IX &amp; X (16)</option>
               <option value="portico">I. Portico &amp; Swag (7)</option>
               <option value="arches">II. Arches &amp; Oriel (9)</option>
@@ -1427,7 +1669,7 @@
               <div class="field-spotter-note" id="quiz-feedback-spotter"></div>
             </div>
 
-            <div class="action-bar">
+            <div class="action-bar" id="quiz-action-bar">
               <button class="btn-secondary" id="btn-quiz-prev">&larr; Prev</button>
               <button class="btn-secondary" id="btn-quiz-hint">&#128161; Hint</button>
               <button class="btn-primary" id="btn-quiz-next">Next Question &rarr;</button>
@@ -1487,7 +1729,7 @@
               <p id="contrast-feedback-body"></p>
             </div>
 
-            <div class="action-bar">
+            <div class="action-bar" id="contrast-action-bar">
               <button class="btn-secondary" id="btn-contrast-prev">&larr; Prev Pair</button>
               <button class="btn-primary" id="btn-contrast-next">Next Contrast Pair &rarr;</button>
             </div>
@@ -3031,6 +3273,74 @@
       const pct = Math.min(100, Math.round((count / total) * 100));
       document.getElementById("mastery-count-text").textContent = `\u2605 ${count} / ${total}`;
       document.getElementById("mastery-bar-fill").style.width = `${pct}%`;
+      const drawerSub = document.getElementById("drawer-mastery-sub");
+      if (drawerSub) {
+        drawerSub.textContent = `\u2605 ${count} / ${total} Terms Mastered (${pct}%)`;
+      }
+    }
+
+    function syncMobileDrawerState() {
+      document.querySelectorAll("[data-drawer-tab]").forEach(b => {
+        b.classList.toggle("active", b.getAttribute("data-drawer-tab") === state.activeTab);
+      });
+      document.querySelectorAll("[data-drawer-quiz-mode]").forEach(b => {
+        b.classList.toggle("active", b.getAttribute("data-drawer-quiz-mode") === state.quizMode);
+      });
+      document.querySelectorAll("[data-drawer-theme]").forEach(b => {
+        b.classList.toggle("active", b.getAttribute("data-drawer-theme") === state.theme);
+      });
+      const drawerDeckSel = document.getElementById("mobile-drawer-deck-select");
+      if (drawerDeckSel && drawerDeckSel.value !== state.quizDeck) {
+        drawerDeckSel.value = state.quizDeck;
+      }
+      const drawerPinsStatus = document.getElementById("drawer-pins-status");
+      if (drawerPinsStatus) {
+        drawerPinsStatus.textContent = state.quizShowPins ? "Numbers ON" : "Dots Only";
+      }
+    }
+
+    function openMobileDrawer(open) {
+      const drawer = document.getElementById("mobile-drawer");
+      const backdrop = document.getElementById("mobile-drawer-backdrop");
+      const btn = document.getElementById("btn-mobile-menu");
+      if (!drawer || !backdrop) return;
+      drawer.classList.toggle("open", open);
+      backdrop.classList.toggle("open", open);
+      if (btn) btn.setAttribute("aria-expanded", open ? "true" : "false");
+    }
+
+    window.__toggleFeedbackTip = function(ev, boxId) {
+      if (ev) ev.stopPropagation();
+      const box = document.getElementById(boxId || "quiz-feedback-box");
+      if (!box) return;
+      const expanded = box.classList.toggle("expanded-tip");
+      if (ev && ev.currentTarget) {
+        ev.currentTarget.innerHTML = expanded ? "Less &#9652;" : "Tip &#9662;";
+      }
+    };
+
+    window.__closeFeedbackBox = function(ev, boxId) {
+      if (ev) ev.stopPropagation();
+      const box = document.getElementById(boxId || "quiz-feedback-box");
+      if (box) box.classList.remove("visible", "expanded-tip");
+    };
+
+    function showQuizFeedback(typeClass, leftTitleHtml, rightBadgeHtml, bodyText, spotterText) {
+      const fbBox = document.getElementById("quiz-feedback-box");
+      const fbTitle = document.getElementById("quiz-feedback-title");
+      const fbBody = document.getElementById("quiz-feedback-body");
+      const fbSpotter = document.getElementById("quiz-feedback-spotter");
+      fbBox.className = "feedback-box visible" + (typeClass ? " " + typeClass : "");
+      fbTitle.innerHTML = `
+        <span style="min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${leftTitleHtml}</span>
+        <span style="display:inline-flex; align-items:center; gap:0.3rem; flex-shrink:0;">
+          ${rightBadgeHtml ? `<span style="font-size:0.72rem; opacity:0.9;">${rightBadgeHtml}</span>` : ""}
+          <button type="button" class="feedback-more-btn" onclick="window.__toggleFeedbackTip(event, 'quiz-feedback-box')">Tip &#9662;</button>
+          <button type="button" class="feedback-more-btn" onclick="window.__closeFeedbackBox(event, 'quiz-feedback-box')" aria-label="Dismiss feedback">&#10005;</button>
+        </span>
+      `;
+      fbBody.textContent = bodyText || "";
+      fbSpotter.textContent = spotterText || "";
     }
 
     function getFilteredQuizQuestions() {
@@ -3054,6 +3364,7 @@
     function renderQuiz() {
       syncResponsiveSlots();
       updateMasteryHeader();
+      syncMobileDrawerState();
       const questions = getFilteredQuizQuestions();
       if (state.quizIdx >= questions.length) state.quizIdx = 0;
       const q = questions[state.quizIdx];
@@ -3062,6 +3373,16 @@
 
       document.getElementById("quiz-plate-num").textContent = `${plate.num} \u2022 ${state.quizIdx + 1}/${questions.length}`;
       document.getElementById("quiz-plate-title").textContent = plate.title;
+
+      const mobChip = document.getElementById("mobile-status-chip");
+      if (mobChip) {
+        mobChip.textContent = `Q ${state.quizIdx + 1}/${questions.length} \u2022 \u2605 ${masteredSet.size}`;
+      }
+
+      const nextBtn = document.getElementById("btn-quiz-next");
+      if (nextBtn) {
+        nextBtn.classList.toggle("next-ready", state.quizAnswered);
+      }
 
       const fig = document.getElementById("quiz-plate-figure");
       fig.classList.toggle("mc-mode-figure", state.quizMode !== "pinpoint");
@@ -3247,11 +3568,6 @@
           </span>
         `;
         btn.addEventListener("click", () => {
-          const fbBox = document.getElementById("quiz-feedback-box");
-          const fbTitle = document.getElementById("quiz-feedback-title");
-          const fbBody = document.getElementById("quiz-feedback-body");
-          const fbSpotter = document.getElementById("quiz-feedback-spotter");
-
           if (optName === q.term) {
             btn.classList.add("correct");
             if (!state.quizAnswered) {
@@ -3262,20 +3578,26 @@
               saveMasteredSet(masteredSet);
             }
             renderQuiz();
-            fbBox.className = "feedback-box visible correct";
-            fbTitle.innerHTML = `<span>&#10003; Correct: ${targetPart.name} (Pin #${targetPart.pin})</span><span>+${state.quizStreak}x</span>`;
-            fbBody.textContent = targetPart.desc;
-            fbSpotter.textContent = targetPart.spotter;
+            showQuizFeedback(
+              "correct",
+              `&#10003; ${targetPart.name} (#${targetPart.pin})`,
+              `+${state.quizStreak}x`,
+              targetPart.desc,
+              targetPart.spotter
+            );
           } else {
             btn.classList.add("wrong");
             if (!state.quizAnswered) {
               state.quizStreak = 0;
             }
             document.getElementById("quiz-streak-badge").innerHTML = `0 &#128293;`;
-            fbBox.className = "feedback-box visible wrong";
-            fbTitle.innerHTML = `<span>&#10007; Not quite (${optName})</span><span>Try again</span>`;
-            fbBody.textContent = targetPart.spotter;
-            fbSpotter.textContent = `Look closely at ${PLATE_CATALOG[q.plateKey].num}.`;
+            showQuizFeedback(
+              "wrong",
+              `&#10007; Not quite (${optName})`,
+              "Try again",
+              targetPart.spotter,
+              `Look closely at ${PLATE_CATALOG[q.plateKey].num}.`
+            );
           }
         });
         container.appendChild(btn);
@@ -3283,11 +3605,6 @@
     }
 
     function handleQuizPinClick(part, btnEl, q, plate, lineEl, dotEl) {
-      const fbBox = document.getElementById("quiz-feedback-box");
-      const fbTitle = document.getElementById("quiz-feedback-title");
-      const fbBody = document.getElementById("quiz-feedback-body");
-      const fbSpotter = document.getElementById("quiz-feedback-spotter");
-
       if (part.id === q.targetId) {
         btnEl.classList.remove("wrong");
         btnEl.classList.add("correct");
@@ -3304,20 +3621,34 @@
           updateMasteryHeader();
         }
 
-        fbBox.className = "feedback-box visible correct";
-        fbTitle.innerHTML = `<span>&#10003; Exact Match: ${part.name}</span><span>+${state.quizStreak > 1 ? state.quizStreak + "x Streak" : "Mastered"}</span>`;
-        fbBody.textContent = part.desc;
-        fbSpotter.textContent = part.spotter;
+        const nextBtn = document.getElementById("btn-quiz-next");
+        if (nextBtn) nextBtn.classList.add("next-ready");
+        const mobChip = document.getElementById("mobile-status-chip");
+        if (mobChip) {
+          const questions = getFilteredQuizQuestions();
+          mobChip.textContent = `Q ${state.quizIdx + 1}/${questions.length} \u2022 \u2605 ${masteredSet.size}`;
+        }
+
+        showQuizFeedback(
+          "correct",
+          `&#10003; Exact Match: ${part.name}`,
+          `+${state.quizStreak > 1 ? state.quizStreak + "x" : "1pt"}`,
+          part.desc,
+          part.spotter
+        );
       } else {
         btnEl.classList.add("wrong");
         setTimeout(() => btnEl.classList.remove("wrong"), 500);
         if (!state.quizAnswered) {
           state.quizStreak = 0;
         }
-        fbBox.className = "feedback-box visible wrong";
-        fbTitle.innerHTML = `<span>&#10007; Pin #${part.pin} is ${part.name}</span><span>Try another pin</span>`;
-        fbBody.textContent = `${part.name}: ${part.desc}`;
-        fbSpotter.textContent = `Target to find: ${q.term}`;
+        showQuizFeedback(
+          "wrong",
+          `&#10007; Pin #${part.pin} is ${part.name}`,
+          "Try another",
+          `${part.name}: ${part.desc}`,
+          `Target to find: ${q.term}`
+        );
       }
 
       document.getElementById("quiz-score-badge").textContent = `${state.quizScore} pt`;
@@ -3327,6 +3658,7 @@
     // Render Module 2: Diagnostic Contrast Pairs ("Spot the Difference")
     function renderContrast() {
       syncResponsiveSlots();
+      syncMobileDrawerState();
       const pair = CONTRAST_PAIRS[state.contrastIdx];
       const plate = PLATE_CATALOG[pair.plateKey];
       const partA = plate.parts.find(p => p.id === pair.idA);
@@ -3381,13 +3713,19 @@
                 if (dotEl) dotEl.classList.add("correct-anchor");
                 btn.innerHTML = `${label}<span class="hotspot-label-tag">${part.name}</span>`;
                 fbBox.className = "feedback-box visible correct";
-                document.getElementById("contrast-feedback-title").innerHTML = `<span>&#10003; Correct! That is ${part.name}</span>`;
+                document.getElementById("contrast-feedback-title").innerHTML = `
+                  <span>&#10003; Correct! That is ${part.name}</span>
+                  <button type="button" class="feedback-more-btn" onclick="window.__closeFeedbackBox(event, 'contrast-feedback-box')">&#10005;</button>
+                `;
                 document.getElementById("contrast-feedback-body").textContent = part.spotter;
               } else {
                 btn.classList.add("wrong");
                 setTimeout(() => btn.classList.remove("wrong"), 500);
                 fbBox.className = "feedback-box visible wrong";
-                document.getElementById("contrast-feedback-title").innerHTML = `<span>&#10007; That is ${otherPart.name}</span>`;
+                document.getElementById("contrast-feedback-title").innerHTML = `
+                  <span>&#10007; That is ${otherPart.name}</span>
+                  <button type="button" class="feedback-more-btn" onclick="window.__closeFeedbackBox(event, 'contrast-feedback-box')">&#10005;</button>
+                `;
                 document.getElementById("contrast-feedback-body").textContent = `Look carefully at the difference: ${targetPart.spotter}`;
               }
             }
@@ -3398,6 +3736,7 @@
 
     // Render Module 3: Paired Plate Visual Dictionary
     function renderAtlas() {
+      syncMobileDrawerState();
       const plate = PLATE_CATALOG[state.atlasPlate];
       const stage = document.getElementById("atlas-plate-stage");
       const figSecondary = document.getElementById("atlas-figure-secondary");
@@ -3475,6 +3814,7 @@
 
     // Render Module 4: 12-Domain Architectural Curriculum Taxonomy
     function renderTaxonomy() {
+      syncMobileDrawerState();
       const container = document.getElementById("domains-grid-container");
       container.innerHTML = "";
       const query = state.taxonomySearch.trim().toLowerCase();
@@ -3555,7 +3895,7 @@
           const deckKey = chip.getAttribute("data-chip-deck") || "all";
           const words = rawTerm.replace(/[()\/,&-]/g, " ").split(/\s+/).filter(w => w.length > 3);
           setQuizDeck(deckKey);
-          const questions = getActiveQuizQuestions();
+          const questions = getFilteredQuizQuestions();
           const matchIdx = questions.findIndex(q => {
             const hay = `${q.term} ${q.category} ${q.desc}`.toLowerCase();
             return hay.includes(rawTerm) || words.some(w => q.term.toLowerCase().includes(w));
@@ -3581,6 +3921,39 @@
       if (mobSelect && mobSelect.value !== deckKey) {
         mobSelect.value = deckKey;
       }
+      const drawerSelect = document.getElementById("mobile-drawer-deck-select");
+      if (drawerSelect && drawerSelect.value !== deckKey) {
+        drawerSelect.value = deckKey;
+      }
+      renderQuiz();
+    }
+
+    function setTheme(themeName) {
+      state.theme = themeName;
+      document.documentElement.setAttribute("data-theme", state.theme);
+      document.querySelectorAll("[data-theme-btn]").forEach(b => {
+        b.classList.toggle("active", b.getAttribute("data-theme-btn") === themeName);
+      });
+      syncMobileDrawerState();
+    }
+
+    function switchTab(tabName) {
+      state.activeTab = tabName;
+      document.querySelectorAll("[data-tab]").forEach(b => {
+        b.classList.toggle("active", b.getAttribute("data-tab") === tabName);
+      });
+      document.querySelectorAll(".module-panel").forEach(p => p.style.display = "none");
+      document.getElementById(`panel-${state.activeTab}`).style.display = "block";
+      syncResponsiveSlots();
+      syncMobileDrawerState();
+    }
+
+    function setQuizMode(modeName) {
+      state.quizMode = modeName;
+      state.quizAnswered = false;
+      document.querySelectorAll("[data-quiz-mode]").forEach(b => {
+        b.classList.toggle("active", b.getAttribute("data-quiz-mode") === modeName);
+      });
       renderQuiz();
     }
 
@@ -3588,34 +3961,71 @@
     function bindEvents() {
       window.addEventListener("resize", () => syncResponsiveSlots());
 
-      document.querySelectorAll("[data-theme-btn]").forEach((btn) => {
+      // Mobile Hamburger Menu Drawer Events
+      const btnMenu = document.getElementById("btn-mobile-menu");
+      const btnCloseMenu = document.getElementById("btn-close-mobile-menu");
+      const backdrop = document.getElementById("mobile-drawer-backdrop");
+      if (btnMenu) btnMenu.addEventListener("click", () => openMobileDrawer(true));
+      if (btnCloseMenu) btnCloseMenu.addEventListener("click", () => openMobileDrawer(false));
+      if (backdrop) backdrop.addEventListener("click", () => openMobileDrawer(false));
+
+      document.querySelectorAll("[data-drawer-tab]").forEach((btn) => {
         btn.addEventListener("click", () => {
-          state.theme = btn.getAttribute("data-theme-btn");
-          document.documentElement.setAttribute("data-theme", state.theme);
-          document.querySelectorAll("[data-theme-btn]").forEach(b => b.classList.remove("active"));
-          btn.classList.add("active");
+          switchTab(btn.getAttribute("data-drawer-tab"));
+          openMobileDrawer(false);
         });
+      });
+
+      const drawerDeckSel = document.getElementById("mobile-drawer-deck-select");
+      if (drawerDeckSel) {
+        drawerDeckSel.addEventListener("change", (e) => {
+          setQuizDeck(e.target.value);
+          switchTab("quiz");
+          openMobileDrawer(false);
+        });
+      }
+
+      const btnDrawerShuffle = document.getElementById("btn-drawer-shuffle");
+      if (btnDrawerShuffle) {
+        btnDrawerShuffle.addEventListener("click", () => {
+          document.getElementById("btn-quiz-shuffle").click();
+          switchTab("quiz");
+          openMobileDrawer(false);
+        });
+      }
+
+      document.querySelectorAll("[data-drawer-quiz-mode]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          setQuizMode(btn.getAttribute("data-drawer-quiz-mode"));
+          switchTab("quiz");
+          openMobileDrawer(false);
+        });
+      });
+
+      document.querySelectorAll("[data-drawer-theme]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          setTheme(btn.getAttribute("data-drawer-theme"));
+        });
+      });
+
+      const btnDrawerPins = document.getElementById("btn-drawer-toggle-pins");
+      if (btnDrawerPins) {
+        btnDrawerPins.addEventListener("click", () => {
+          document.getElementById("btn-quiz-toggle-pins").click();
+          syncMobileDrawerState();
+        });
+      }
+
+      document.querySelectorAll("[data-theme-btn]").forEach((btn) => {
+        btn.addEventListener("click", () => setTheme(btn.getAttribute("data-theme-btn")));
       });
 
       document.querySelectorAll("[data-tab]").forEach((tabBtn) => {
-        tabBtn.addEventListener("click", () => {
-          state.activeTab = tabBtn.getAttribute("data-tab");
-          document.querySelectorAll("[data-tab]").forEach(b => b.classList.remove("active"));
-          tabBtn.classList.add("active");
-          document.querySelectorAll(".module-panel").forEach(p => p.style.display = "none");
-          document.getElementById(`panel-${state.activeTab}`).style.display = "block";
-          syncResponsiveSlots();
-        });
+        tabBtn.addEventListener("click", () => switchTab(tabBtn.getAttribute("data-tab")));
       });
 
       document.querySelectorAll("[data-quiz-mode]").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          state.quizMode = btn.getAttribute("data-quiz-mode");
-          state.quizAnswered = false;
-          document.querySelectorAll("[data-quiz-mode]").forEach(b => b.classList.remove("active"));
-          btn.classList.add("active");
-          renderQuiz();
-        });
+        btn.addEventListener("click", () => setQuizMode(btn.getAttribute("data-quiz-mode")));
       });
 
       document.getElementById("btn-toggle-mobile-clue").addEventListener("click", () => {
@@ -3682,15 +4092,18 @@
         const q = questions[state.quizIdx];
         const plate = PLATE_CATALOG[q.plateKey];
         const target = plate.parts.find(p => p.id === q.targetId);
-        const fbBox = document.getElementById("quiz-feedback-box");
-        fbBox.className = "feedback-box visible";
-        document.getElementById("quiz-feedback-title").innerHTML = `<span>&#128161; Spotter Hint: Look near Pin #${target.pin}</span>`;
-        document.getElementById("quiz-feedback-body").textContent = target.spotter;
-        document.getElementById("quiz-feedback-spotter").textContent = `Category: ${target.category}`;
+        showQuizFeedback(
+          "",
+          `&#128161; Hint: Look near Pin #${target.pin}`,
+          target.category,
+          target.spotter,
+          target.desc
+        );
       });
 
       window.addEventListener("keydown", (e) => {
         if (document.activeElement && document.activeElement.tagName === "INPUT") return;
+        if (e.key === "Escape") openMobileDrawer(false);
         if (state.activeTab === "quiz" && (state.quizMode === "reverse_mc" || state.quizMode === "clue_mc")) {
           if (["1", "2", "3", "4"].includes(e.key)) {
             const idx = parseInt(e.key, 10) - 1;
