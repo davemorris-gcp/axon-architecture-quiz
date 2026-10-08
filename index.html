@@ -394,7 +394,7 @@
       border-radius: 6px;
     }
 
-    /* Interactive Hotspot Overlay */
+    /* Interactive Hotspot Overlay with Drafting Leader Lines */
     .hotspot-layer {
       position: absolute;
       inset: 0;
@@ -402,29 +402,111 @@
       height: 100%;
     }
 
+    .leader-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 6;
+      overflow: visible;
+    }
+
+    .leader-line {
+      stroke: var(--accent-primary);
+      stroke-width: 1.35px;
+      vector-effect: non-scaling-stroke;
+      opacity: 0.78;
+      transition: stroke 0.16s ease, stroke-width 0.16s ease, opacity 0.16s ease;
+    }
+
+    .leader-line.active-leader {
+      stroke-width: 2.1px;
+      opacity: 1;
+    }
+
+    .leader-line.correct-leader {
+      stroke: var(--accent-correct);
+      stroke-width: 2.2px;
+      opacity: 1;
+    }
+
+    /* Tiny hollow precision target ring on the exact architectural detail (never obscures line-work) */
+    .hotspot-anchor-dot {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: transparent;
+      border: 1.75px solid var(--accent-primary);
+      box-shadow: 0 0 0 1.25px rgba(255, 255, 255, 0.85);
+      padding: 0;
+      cursor: pointer;
+      z-index: 8;
+      touch-action: manipulation;
+      transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    /* Invisible 22x22px tap target on the detail itself */
+    .hotspot-anchor-dot::before {
+      content: '';
+      position: absolute;
+      inset: -7px;
+      border-radius: 999px;
+    }
+
+    .hotspot-anchor-dot.active-anchor,
+    .hotspot-anchor-dot:hover {
+      transform: translate(-50%, -50%) scale(1.3);
+      border-width: 2px;
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.92), 0 0 0 4px var(--accent-soft);
+    }
+
+    .hotspot-anchor-dot.correct-anchor {
+      border-color: var(--accent-correct);
+      border-width: 2.25px;
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.92), 0 0 0 5px var(--accent-correct-bg);
+    }
+
+    /* Hollow dashed view-finder ring for "Pin -> 4 Choices" so the mystery detail inside is 100% visible */
+    .hotspot-anchor-dot.mystery-ring {
+      width: 20px;
+      height: 20px;
+      background: transparent;
+      border: 2px dashed var(--accent-primary);
+      box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.82);
+      animation: mysteryRingPulse 2s infinite ease-in-out;
+    }
+
+    @keyframes mysteryRingPulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); }
+      50% { transform: translate(-50%, -50%) scale(1.16); }
+    }
+
     .hotspot-pin {
       position: absolute;
       transform: translate(-50%, -50%);
-      width: 30px;
-      height: 30px;
+      width: 25px;
+      height: 25px;
       border-radius: 999px;
       background: var(--pin-bg);
       color: var(--pin-text);
-      border: 2px solid var(--border-strong);
+      border: 1.75px solid var(--border-strong);
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.78rem;
+      font-size: 0.74rem;
       font-weight: 700;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.24);
+      box-shadow: 0 2px 7px rgba(0, 0, 0, 0.2);
       transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.16s ease, border-color 0.16s ease;
-      z-index: 10;
+      z-index: 12;
       touch-action: manipulation;
     }
 
-    /* Generous 44x44px invisible touch hit area for mobile fingers */
+    /* Generous 40x40px invisible touch hit area for mobile fingers */
     .hotspot-pin::before {
       content: '';
       position: absolute;
@@ -435,29 +517,29 @@
     .hotspot-pin::after {
       content: '';
       position: absolute;
-      inset: -5px;
+      inset: -4px;
       border-radius: 999px;
-      border: 1.5px solid var(--accent-primary);
-      opacity: 0.55;
-      animation: pulseRing 2.2s infinite ease-out;
+      border: 1.25px solid var(--accent-primary);
+      opacity: 0.45;
+      animation: pulseRing 2.4s infinite ease-out;
       pointer-events: none;
     }
 
     .hotspot-pin.mystery-target {
-      width: 36px;
-      height: 36px;
+      width: 28px;
+      height: 28px;
       background: var(--accent-primary);
       color: #FFFFFF;
       border-color: #FFFFFF;
-      font-size: 0.96rem;
+      font-size: 0.84rem;
       z-index: 25;
-      box-shadow: 0 0 0 6px var(--accent-soft), 0 6px 16px rgba(0,0,0,0.35);
+      box-shadow: 0 0 0 4px var(--accent-soft), 0 4px 12px rgba(0,0,0,0.3);
     }
 
     @keyframes pulseRing {
-      0% { transform: scale(0.88); opacity: 0.75; }
-      70% { transform: scale(1.36); opacity: 0; }
-      100% { transform: scale(1.36); opacity: 0; }
+      0% { transform: scale(0.9); opacity: 0.65; }
+      70% { transform: scale(1.32); opacity: 0; }
+      100% { transform: scale(1.32); opacity: 0; }
     }
 
     .hotspot-pin.mastered-pin {
@@ -466,7 +548,7 @@
 
     .hotspot-pin:hover,
     .hotspot-pin.selected {
-      transform: translate(-50%, -50%) scale(1.18);
+      transform: translate(-50%, -50%) scale(1.16);
       background: var(--accent-primary);
       color: #FFFFFF;
       border-color: #FFFFFF;
@@ -477,7 +559,7 @@
       background: var(--accent-correct);
       color: #FFFFFF;
       border-color: #FFFFFF;
-      transform: translate(-50%, -50%) scale(1.22);
+      transform: translate(-50%, -50%) scale(1.18);
       z-index: 25;
     }
 
@@ -505,7 +587,7 @@
       padding: 2px 7px;
       border-radius: 5px;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       font-weight: 600;
       white-space: nowrap;
       pointer-events: none;
@@ -1126,15 +1208,33 @@
       }
 
       .hotspot-pin {
-        width: 28px;
-        height: 28px;
+        width: 21px;
+        height: 21px;
+        font-size: 0.68rem;
+        border-width: 1.5px;
+      }
+
+      .hotspot-pin.mystery-target {
+        width: 24px;
+        height: 24px;
         font-size: 0.76rem;
       }
 
+      .hotspot-anchor-dot {
+        width: 7px;
+        height: 7px;
+        border-width: 1.5px;
+      }
+
+      .hotspot-anchor-dot.mystery-ring {
+        width: 18px;
+        height: 18px;
+        border-width: 1.75px;
+      }
+
+      /* On mobile, the full term name is shown immediately below the drawing in the prompt/feedback box, so hide floating label tags to keep the drawing 100% unobstructed */
       .hotspot-label-tag {
-        max-width: 145px;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        display: none;
       }
     }
   </style>
@@ -1556,7 +1656,7 @@
             pin: "1",
             name: "Pediment (Pedimented Portico)",
             category: "Classical Massing",
-            x: 39, y: 16,
+            x: 39, y: 16, bx: 35.4, by: 6.1,
             desc: "A triangular classical gable crowning a portico or facade, framed by a sloping raking cornice above and a horizontal cornice below, enclosing a recessed triangular face called the tympanum.",
             spotter: "Spotter Tip: Compare triangular pediments with segmental (curved-arch) or broken pediments on Georgian, Classical Revival, and Beaux-Arts buildings."
           },
@@ -1565,7 +1665,7 @@
             pin: "2",
             name: "Cornice (with Modillions & Dentils)",
             category: "Entablature (Top Tier)",
-            x: 28, y: 34,
+            x: 28, y: 34, bx: 12.0, by: 32.0,
             desc: "The uppermost, projecting horizontal member of a classical entablature that throws rainwater clear of the facade, enriched here with scrolled brackets (modillions) and tooth-like blocks (dentils).",
             spotter: "Spotter Tip: Look directly beneath the roof eave line—dentils look like a row of small rectangular piano keys."
           },
@@ -1574,7 +1674,7 @@
             pin: "3",
             name: "Swag (Festoon)",
             category: "Architectural Ornament",
-            x: 45, y: 43,
+            x: 45, y: 43, bx: 14.0, by: 44.0,
             desc: "A carved, molded, or plaster decorative garland of foliage, flowers, fruit, or draped cloth appearing to hang in a catenary curve between two points, fastened with ribbons or rosettes.",
             spotter: "Spotter Tip: Ubiquitous on Queen Anne Victorian friezes, Colonial Revival fireplace mantels, and Beaux-Arts limestone spandrels."
           },
@@ -1583,7 +1683,7 @@
             pin: "4",
             name: "Architrave",
             category: "Entablature (Bottom Tier)",
-            x: 34, y: 52,
+            x: 34, y: 52, bx: 21.0, by: 58.0,
             desc: "The lowest of the three main parts of a classical entablature (beneath the frieze and cornice), resting directly upon the abacus of the column capital and spanning from column to column.",
             spotter: "Spotter Tip: Notice how the classical architrave is divided into three stepped horizontal bands called fasciae."
           },
@@ -1592,7 +1692,7 @@
             pin: "5",
             name: "Corinthian Capital",
             category: "Classical Orders",
-            x: 63, y: 64, pinLeft: true,
+            x: 63, y: 64, bx: 44.0, by: 68.0, pinLeft: true,
             desc: "The most ornate of the classical Greek and Roman orders, characterized by a slender bell-shaped core (echinus) surrounded by two staggered tiers of carved acanthus leaves and corner spiral volutes.",
             spotter: "Spotter Tip: Doric has a plain cushion; Ionic has large side rams-horn scrolls; Corinthian blooms with carved acanthus leaves."
           },
@@ -1601,7 +1701,7 @@
             pin: "6",
             name: "Engaged Fluted Column",
             category: "Structural / Tectonic",
-            x: 62, y: 83, pinLeft: true,
+            x: 62, y: 83, bx: 46.0, by: 85.0, pinLeft: true,
             desc: "A circular column shaft carved with vertical concave grooves (flutes separated by flat fillets) that is partially built into—or 'engaged' with—the adjacent structural masonry wall rather than standing free.",
             spotter: "Spotter Tip: If it's round and partially embedded in the wall, it's an engaged column; if it's flat/rectangular against the wall, it's a pilaster!"
           },
@@ -1610,7 +1710,7 @@
             pin: "7",
             name: "Ashlar Masonry Wall (Cut Section)",
             category: "Wall Assembly",
-            x: 80, y: 60, pinLeft: true,
+            x: 80, y: 60, bx: 90.0, by: 62.0, pinLeft: true,
             desc: "Finely dressed, square-cut stone blocks laid in regular horizontal courses. The 45-degree diagonal hatching indicates an architectural section cut plane revealing the wall's structural depth.",
             spotter: "Spotter Tip: In architectural drawings, parallel diagonal hatching always denotes material sliced open by the section plane."
           }
@@ -1628,7 +1728,7 @@
             pin: "1",
             name: "Oriel Window",
             category: "Projecting Fenestration",
-            x: 38, y: 14,
+            x: 38, y: 14, bx: 13.0, by: 14.0,
             desc: "A polygonal or curved bay window that projects from an upper story only—never reaching the ground—and is supported from below by corbels, brackets, or a molded console.",
             spotter: "Spotter Tip: Diagnostic Rule: If the projecting window sits on the ground foundation, it's a Bay Window; if it hangs off an upper floor on brackets, it's an Oriel Window!"
           },
@@ -1637,7 +1737,7 @@
             pin: "2",
             name: "Corbel Brackets (Consoles)",
             category: "Structural & Ornamental Support",
-            x: 45, y: 28.5,
+            x: 45, y: 28.5, bx: 13.0, by: 26.5,
             desc: "Projecting stone, brick, or timber blocks (often carved as S-scroll consoles with acanthus foliage) cantilevered out from a wall face to carry the weight of an oriel window, cornice, or balcony.",
             spotter: "Spotter Tip: True corbeling steps outward in masonry courses; scrolled S-shaped brackets are also called consoles or modillions."
           },
@@ -1646,7 +1746,7 @@
             pin: "3",
             name: "Belt Course (String Course)",
             category: "Masonry Articulation",
-            x: 53, y: 31, pinLeft: true,
+            x: 53, y: 31, bx: 88.0, by: 31.0, pinLeft: true,
             desc: "A continuous projecting horizontal band of stone or brick across an exterior facade that visually marks interior floor levels and sheds rainwater away from lower wall courses.",
             spotter: "Spotter Tip: When a belt course aligns seamlessly with the window sills across a story, it is called a 'sill course'."
           },
@@ -1655,7 +1755,7 @@
             pin: "4",
             name: "Palladian (Venetian / Serlian) Window",
             category: "Classical Fenestration",
-            x: 39, y: 44,
+            x: 39, y: 44, bx: 13.0, by: 42.0,
             desc: "A grand tripartite window composed of a tall central arched opening flanked on either side by narrower rectangular sidelights, separated by small columns or pilasters supporting short entablatures.",
             spotter: "Spotter Tip: Named after Renaissance architect Andrea Palladio; a hallmark of Georgian, Federal, and Colonial Revival stair landings."
           },
@@ -1664,7 +1764,7 @@
             pin: "5",
             name: "Keystone",
             category: "Arch Anatomy",
-            x: 38.5, y: 60,
+            x: 38.5, y: 60, bx: 13.0, by: 54.0,
             desc: "The central, oversized wedge-shaped stone dropped into place last at the crown (apex) of an arch, locking all surrounding voussoirs into compression so the arch becomes self-supporting.",
             spotter: "Spotter Tip: Often emphasized by projecting proud of the arch plane or carved with a scroll, mask, or acanthus leaf."
           },
@@ -1673,7 +1773,7 @@
             pin: "6",
             name: "Voussoirs",
             category: "Arch Anatomy",
-            x: 32, y: 63.5,
+            x: 32, y: 63.5, bx: 13.0, by: 65.0,
             desc: "The individual wedge-shaped stones or bricks that form the curved ring (archivolt) of a true masonry arch, transferring gravity loads outward and downward in compression.",
             spotter: "Spotter Tip: Notice how the mortar joints between voussoirs radiate outward from the geometric center of the arch."
           },
@@ -1682,7 +1782,7 @@
             pin: "7",
             name: "Arch Spandrel",
             category: "Arch Anatomy",
-            x: 47.5, y: 63.5,
+            x: 47.5, y: 63.5, bx: 88.0, by: 63.5,
             desc: "The roughly triangular wall surface bounded by the outer curve (extrados) of an arch, the horizontal molding above it, and the vertical pier line.",
             spotter: "Spotter Tip: Note the dual meaning in architecture: 'spandrel' refers both to this triangular corner above an arch AND to the wall panel between stories in a multistory building!"
           },
@@ -1691,7 +1791,7 @@
             pin: "8",
             name: "Impost (Springing Block)",
             category: "Arch Anatomy",
-            x: 30, y: 68,
+            x: 30, y: 68, bx: 13.0, by: 76.0,
             desc: "The projecting molded horizontal stone block or cap at the top of a pier or jamb from which the lowest voussoir (the 'springer') of an arch rises.",
             spotter: "Spotter Tip: Marks the exact geometric transition line ('springing line') between vertical pier support and curved arch action."
           },
@@ -1700,7 +1800,7 @@
             pin: "9",
             name: "Quoins",
             category: "Masonry Corner Detail",
-            x: 69, y: 78, pinLeft: true,
+            x: 69, y: 78, bx: 86.0, by: 80.0, pinLeft: true,
             desc: "Large, dressed, often rusticated stone blocks laid in alternating header-and-stretcher ('long-and-short') courses at the external corner of a wall to reinforce the angle and frame the facade.",
             spotter: "Spotter Tip: From French 'coin' (corner); prominent on Georgian, Italianate, Second Empire, and Renaissance Revival buildings."
           }
@@ -1718,7 +1818,7 @@
             pin: "1",
             name: "Mansard Roof (Dual-Pitch Four-Sided)",
             category: "Roof Geometry (Top-Left)",
-            x: 20, y: 22,
+            x: 20, y: 22, bx: 9.5, by: 14.0,
             desc: "A four-sided hipped roof characterized by two slopes on each of its four sides: a very steep (often concave, convex, or S-curved) lower slope punctured by dormers, and a low-pitched upper slope invisible from the street.",
             spotter: "Spotter Tip: The defining signature of Second Empire Victorian architecture (named after French architect François Mansart); maximizes full-height attic living space."
           },
@@ -1727,7 +1827,7 @@
             pin: "2",
             name: "Pedimented Roof Dormer (Lucarne)",
             category: "Dormer Anatomy (Top-Left)",
-            x: 29.5, y: 31,
+            x: 29.5, y: 31, bx: 42.0, by: 41.0,
             desc: "A vertical window structure projecting through a steep sloping roof plane with its own side cheeks and small triangular pedimented roof to bring light and headroom to an attic story.",
             spotter: "Spotter Tip: From Latin 'dormitorium' (sleeping room), because dormers originally lit upper-story bedrooms."
           },
@@ -1736,7 +1836,7 @@
             pin: "3",
             name: "Gambrel Roof (Dual-Pitch Gable)",
             category: "Roof Geometry (Top-Right)",
-            x: 67, y: 19, pinLeft: true,
+            x: 67, y: 19, bx: 59.0, by: 11.0, pinLeft: true,
             desc: "A symmetrical two-sided roof with two slopes on each side (a shallow upper slope and a steep lower slope), leaving vertical gable end walls on the two non-sloping ends.",
             spotter: "Spotter Tip: Don't confuse Mansard with Gambrel! A Mansard has dual slopes on ALL FOUR sides; a Gambrel has dual slopes on only TWO sides with vertical gable ends (classic Dutch Colonial & barns)."
           },
@@ -1745,7 +1845,7 @@
             pin: "4",
             name: "Shed Dormer",
             category: "Dormer Anatomy (Top-Right)",
-            x: 81, y: 26, pinLeft: true,
+            x: 81, y: 26, bx: 91.5, by: 34.0, pinLeft: true,
             desc: "A wide dormer whose single-plane roof slopes in the same direction as the main roof but at a shallower pitch, creating a continuous band of attic headroom and windows.",
             spotter: "Spotter Tip: Extremely common on Dutch Colonial Revival gambrel roofs and Craftsman bungalows."
           },
@@ -1754,7 +1854,7 @@
             pin: "5",
             name: "Clipped Gable (Jerkinhead / Shreadhead) Roof",
             category: "Roof Geometry (Bottom-Left)",
-            x: 18, y: 67,
+            x: 18, y: 67, bx: 9.5, by: 60.0,
             desc: "A gabled roof whose triangular peak is truncated ('clipped') and sloped backward into a small hip at the top edge, reducing wind uplift on the gable apex.",
             spotter: "Spotter Tip: Watch the apex of the gable wall—if the sharp triangle point is folded back like the brim of a cap, it's a Jerkinhead."
           },
@@ -1763,7 +1863,7 @@
             pin: "6",
             name: "Exposed Rafter Tails",
             category: "Eave & Verge Anatomy (Bottom-Left)",
-            x: 33.5, y: 84,
+            x: 33.5, y: 84, bx: 38.0, by: 92.0,
             desc: "The projecting lower ends of the sloping structural roof rafters left unboxed and visible beneath an open overhanging eave, often sawn with decorative curved or tapered profiles.",
             spotter: "Spotter Tip: A hallmark of the Arts & Crafts / Craftsman movement, celebrating honest structural expression over boxed classical cornices."
           },
@@ -1772,7 +1872,7 @@
             pin: "7",
             name: "Louvered Cupola (Roof Lantern / Belvedere)",
             category: "Rooftop Crowning Element (Bottom-Right)",
-            x: 74.5, y: 59, pinLeft: true,
+            x: 74.5, y: 59, bx: 87.0, by: 55.0, pinLeft: true,
             desc: "A small, centralized structure crowning the ridge or peak of a main roof, fitted with louvers for attic stack-ventilation or glazing ('lantern') to illuminate the space below.",
             spotter: "Spotter Tip: Signature crown of Italianate villas, Georgian civic halls, and New England carriage houses."
           },
@@ -1781,7 +1881,7 @@
             pin: "8",
             name: "Eyebrow Dormer",
             category: "Dormer Anatomy (Bottom-Right)",
-            x: 81, y: 77, pinLeft: true,
+            x: 81, y: 77, bx: 91.0, by: 83.0, pinLeft: true,
             desc: "A low, wide dormer with no vertical side cheeks; the roof shingles warp smoothly upward over a curved window sash in a continuous wave or 'eyebrow' bell curve.",
             spotter: "Spotter Tip: Beloved by H.H. Richardson (Richardsonian Romanesque) and Shingle Style architects for its organic, sculptural flow."
           }
@@ -1799,7 +1899,7 @@
             pin: "1",
             name: "Craftsman Bungalow (1.5-Story)",
             category: "Residential Building Type",
-            x: 21, y: 38,
+            x: 21, y: 38, bx: 11.0, by: 28.0,
             desc: "A 1- to 1.5-story house characterized by a low-pitched gabled roof, wide overhanging eaves with exposed rafter tails/brackets, a deep front porch, and tapered ('battered') piers on brick pedestals.",
             spotter: "Spotter Tip: Look for the low, ground-hugging roof slope and heavy tapered porch piers—the hallmark of 1910s–1920s streetcar suburbs."
           },
@@ -1808,7 +1908,7 @@
             pin: "2",
             name: "Tapered Battered Porch Pier",
             category: "Craftsman Component",
-            x: 18.5, y: 68,
+            x: 18.5, y: 68, bx: 11.0, by: 87.0,
             desc: "A signature Craftsman porch support featuring a square or trapezoidal wooden post with inward-sloping ('battered') sides resting atop a heavy brick or stone masonry pedestal.",
             spotter: "Spotter Tip: 'Battered' in architecture means intentionally sloped inward from base to top for visual stability."
           },
@@ -1817,7 +1917,7 @@
             pin: "3",
             name: "Picturesque / English Revival Cottage",
             category: "Residential Building Type",
-            x: 50, y: 34,
+            x: 50, y: 34, bx: 44.0, by: 22.0,
             desc: "A 1.5-story house defined by steeply pitched asymmetrical cross-gables, tight eaves, a prominent front or side decorative chimney stack with clay pots, grouped casement windows, and a snug arched entry vestibule.",
             spotter: "Spotter Tip: Unlike the Bungalow's deep horizontal porch and low roof, the Cottage emphasizes steep vertical gables and a storybook front chimney."
           },
@@ -1826,7 +1926,7 @@
             pin: "4",
             name: "Gabled Vestibule & Arched Batten Door",
             category: "Cottage Component",
-            x: 56.5, y: 62, pinLeft: true,
+            x: 56.5, y: 62, bx: 62.0, by: 81.0, pinLeft: true,
             desc: "Instead of a full-width front porch, English and Tudor Revival cottages typically project a small steeply gabled entry vestibule with a round- or Tudor-arched vertical plank ('batten') door.",
             spotter: "Spotter Tip: Often framed in decorative brick tabling right beside the front chimney."
           },
@@ -1835,7 +1935,7 @@
             pin: "5",
             name: "American Foursquare (2.5-Story)",
             category: "Residential Building Type",
-            x: 84, y: 42, pinLeft: true,
+            x: 84, y: 42, bx: 92.0, by: 26.0, pinLeft: true,
             desc: "A post-Victorian 2.5-story house with cubic boxy massing, a four-room-over-four-room floor plan, a pyramidal hipped roof, a central hipped attic dormer, and a full-width single-story front porch.",
             spotter: "Spotter Tip: Count the stories and look at the roof: 2 full stories + boxy footprint + 4-sided pyramidal roof + center dormer = American Foursquare."
           },
@@ -1844,7 +1944,7 @@
             pin: "6",
             name: "Pyramidal Hipped Roof & Hipped Dormer",
             category: "Foursquare Component",
-            x: 76.5, y: 35, pinLeft: true,
+            x: 76.5, y: 35, bx: 69.0, by: 22.0, pinLeft: true,
             desc: "All four roof planes slope inward from the eaves toward a central peak or short ridge, punctuated at the front by a matching hip-roofed dormer that lights and ventilates the half-story attic.",
             spotter: "Spotter Tip: A gable roof has vertical triangular wall ends; a hipped roof slopes back on all four sides with no vertical gable wall."
           }
@@ -1862,7 +1962,7 @@
             pin: "1",
             name: "Vertical Mullion (Extruded Aluminum)",
             category: "Curtain Wall Framing",
-            x: 53.5, y: 36, pinLeft: true,
+            x: 53.5, y: 36, bx: 24.0, by: 24.0, pinLeft: true,
             desc: "The primary vertical framing member of a curtain wall system. Notice the intricate hollow extruded aluminum section profile at the top cut, which provides structural stiffness and houses thermal breaks and glazing gaskets.",
             spotter: "Spotter Tip: Vertical mullions span floor-to-floor and carry wind loads back to the concrete slab edge anchors."
           },
@@ -1871,7 +1971,7 @@
             pin: "2",
             name: "Horizontal Transom (Rail)",
             category: "Curtain Wall Framing",
-            x: 63, y: 24, pinLeft: true,
+            x: 63, y: 24, bx: 43.0, by: 12.0, pinLeft: true,
             desc: "The horizontal framing member spanning between vertical mullions to divide vision glass lites from opaque spandrel panels and drain any infiltrated moisture to the exterior.",
             spotter: "Spotter Tip: Mullions run vertically (or define primary divisions); transoms/rails run horizontally between them."
           },
@@ -1880,7 +1980,7 @@
             pin: "3",
             name: "Spandrel Panel (Opaque Glazing)",
             category: "Building Envelope",
-            x: 44, y: 47,
+            x: 44, y: 47, bx: 14.0, by: 35.0,
             desc: "An opaque, ceramic-fritted, or shadow-box glass panel installed between the head of one window and the sill of the window above, concealing the concrete floor slab edge, fireproofing, and ceiling plenum.",
             spotter: "Spotter Tip: Look at any glass office tower from the street—the darker or opaque horizontal bands hiding the floors between clear windows are spandrel glass."
           },
@@ -1889,7 +1989,7 @@
             pin: "4",
             name: "Vision Glass (Insulating Glazing Unit)",
             category: "Building Envelope",
-            x: 63, y: 58, pinLeft: true,
+            x: 63, y: 58, bx: 89.0, by: 56.0, pinLeft: true,
             desc: "Transparent double- or triple-glazed window panels occupying the floor-to-ceiling viewing zone of each story, drafted with classic 45-degree architectural reflection ticks.",
             spotter: "Spotter Tip: Vision glass provides daylight and views, whereas spandrel glass masks structural and mechanical zones."
           },
@@ -1898,7 +1998,7 @@
             pin: "5",
             name: "Slab-Edge Steel Anchor Bracket",
             category: "Structural Attachment",
-            x: 31.5, y: 53,
+            x: 31.5, y: 53, bx: 11.0, by: 77.0,
             desc: "A heavy bolted steel connection bracket that suspends the non-structural curtain wall off the edge of the building's structural floor slab while allowing independent thermal and seismic movement.",
             spotter: "Spotter Tip: This anchor is why it's called a 'curtain' wall—the facade hangs like a curtain from the floor slabs and carries zero building floor loads!"
           },
@@ -1907,7 +2007,7 @@
             pin: "6",
             name: "Reinforced Concrete Floor Slab",
             category: "Primary Structure",
-            x: 21, y: 41,
+            x: 21, y: 41, bx: 8.5, by: 45.0,
             desc: "The load-bearing structural floor plate of the building, drafted with classic concrete aggregate stippling, triangular gravel symbols, and bent steel reinforcing bars (rebar) in section.",
             spotter: "Spotter Tip: Notice how the curtain wall passes completely outside the slab edge—a continuous 'bypass' envelope."
           }
@@ -1925,7 +2025,7 @@
             pin: "1",
             name: "Doric Frieze (Triglyphs & Metopes)",
             category: "Doric Order (Column 1)",
-            x: 15.5, y: 27,
+            x: 15.5, y: 27, bx: 7.5, by: 25.0,
             desc: "The signature frieze of the Doric entablature, alternating between vertically grooved blocks ('triglyphs', representing ancient timber beam ends) and square plain or sculpted panels ('metopes').",
             spotter: "Spotter Tip: If you see three vertical grooves (triglyphs) alternating with square panels along a frieze, it is unmistakably the Doric order."
           },
@@ -1934,7 +2034,7 @@
             pin: "2",
             name: "Doric Capital (Echinus & Abacus)",
             category: "Doric Order (Column 1)",
-            x: 15, y: 39,
+            x: 15, y: 39, bx: 8.0, by: 47.0,
             desc: "The sturdy, unornamented capital of the Doric order, consisting of a flared cushion-like molding (the echinus) supporting a square flat slab (the abacus) directly beneath the architrave.",
             spotter: "Spotter Tip: Greek Doric columns have no base (resting directly on the stylobate) and feature 20 shallow flutes meeting in sharp arrises."
           },
@@ -1943,7 +2043,7 @@
             pin: "3",
             name: "Ionic Capital (Scrolled Volutes)",
             category: "Ionic Order (Column 2)",
-            x: 38.5, y: 35.5,
+            x: 38.5, y: 35.5, bx: 29.0, by: 35.5,
             desc: "The hallmark of the Ionic order, featuring paired spiral scroll ornaments ('volutes', resembling rams' horns or unrolled parchment) resting atop an egg-and-dart echinus.",
             spotter: "Spotter Tip: Ionic shafts are taller and more slender than Doric, with 24 deep flutes separated by narrow flat fillets."
           },
@@ -1952,7 +2052,7 @@
             pin: "4",
             name: "Attic Base & Plinth",
             category: "Column Base Anatomy (Column 2)",
-            x: 38.5, y: 78.5,
+            x: 38.5, y: 78.5, bx: 29.0, by: 82.0,
             desc: "The classic molded column base consisting of an upper and lower convex semicircular ring ('torus') separated by a deep concave hollow molding ('scotia') resting on a square plinth block.",
             spotter: "Spotter Tip: Look at the base profile: convex bulge (torus) -> concave scoop (scotia) -> convex bulge (torus) -> square block (plinth)."
           },
@@ -1961,7 +2061,7 @@
             pin: "5",
             name: "Corinthian Capital (Acanthus & Caulicoli)",
             category: "Corinthian Order (Column 3)",
-            x: 62.2, y: 35, pinLeft: true,
+            x: 62.2, y: 35, bx: 52.5, by: 35.0, pinLeft: true,
             desc: "A tall, bell-shaped capital encircled by two staggered rows of stylized spiny acanthus leaves, from which fluted stalks ('caulicoli') rise to support small corner volutes and a central fleuron.",
             spotter: "Spotter Tip: When the Romans combined large Ionic rams-horn volutes atop Corinthian acanthus leaves, they created the fifth order: the Composite Order."
           },
@@ -1970,7 +2070,7 @@
             pin: "6",
             name: "Engaged Column (Three-Quarter Shaft)",
             category: "Wall Column (Section 4 Left)",
-            x: 82.5, y: 53, pinLeft: true,
+            x: 82.5, y: 53, bx: 72.5, by: 53.0, pinLeft: true,
             desc: "A circular, three-dimensional column shaft with capital and base that is partially embedded into the face of a masonry wall (typically projecting half to three-quarters of its diameter).",
             spotter: "Spotter Tip: Contrast directly with its neighbor on the right: an engaged column is CURVED/ROUND in plan!"
           },
@@ -1979,7 +2079,7 @@
             pin: "7",
             name: "Pilaster (Flat Rectangular Wall Pier)",
             category: "Wall Column (Section 4 Right)",
-            x: 89, y: 58, pinLeft: true,
+            x: 89, y: 58, bx: 72.5, by: 67.0, pinLeft: true,
             desc: "A shallow, flattened rectangular representation of a classical column—complete with capital, shaft, and base—projecting only slightly from a wall face in low relief.",
             spotter: "Spotter Tip: Diagnostic Rule: Round shaft attached to a wall = Engaged Column; flat rectangular shaft attached to a wall = Pilaster!"
           }
@@ -1997,7 +2097,7 @@
             pin: "1",
             name: "Mullion (Structural Window Divider)",
             category: "Window Framing (Left)",
-            x: 23.5, y: 46,
+            x: 23.5, y: 46, bx: 7.0, by: 44.0,
             desc: "A heavy vertical structural framing member that separates two distinct window units (such as paired double-hung windows) or separates a door from its sidelights.",
             spotter: "Spotter Tip: #1 Most Tested Distinction: A MULLION separates entire window units; a MUNTIN is the thin grid strip between individual glass panes!"
           },
@@ -2006,7 +2106,7 @@
             pin: "2",
             name: "Muntins (Glazing Bars)",
             category: "Sash Joinery (Left)",
-            x: 30, y: 40,
+            x: 30, y: 40, bx: 48.0, by: 35.0,
             desc: "The thin vertical and horizontal wood or metal strips ('glazing bars') inside a window sash that subdivide the sash into smaller individual panes of glass ('lites', such as 6-over-6).",
             spotter: "Spotter Tip: Before large plate glass could be manufactured, muntins were required to join small blown-glass panes together."
           },
@@ -2015,7 +2115,7 @@
             pin: "3",
             name: "Double-Hung Window Sash (Upper & Lower)",
             category: "Window Operation (Left)",
-            x: 17.5, y: 34,
+            x: 17.5, y: 34, bx: 7.5, by: 31.0,
             desc: "A window with two vertically sliding sashes (an upper sash in the outer track and a lower sash in the inner track) counterbalanced by sash weights or springs inside the jamb pockets.",
             spotter: "Spotter Tip: In a 'Single-Hung' window, only the bottom sash slides up while the top sash is fixed; in 'Double-Hung', both slide."
           },
@@ -2024,7 +2124,7 @@
             pin: "4",
             name: "Meeting Rail (Check Rail)",
             category: "Sash Joinery (Left)",
-            x: 29, y: 52.5,
+            x: 29, y: 52.5, bx: 7.5, by: 56.0,
             desc: "The horizontal framing rails (the bottom rail of the upper sash and the top rail of the lower sash) that overlap and lock together at the horizontal midpoint of a double-hung window.",
             spotter: "Spotter Tip: Features a beveled interlocking 'check' joint to seal out wind and rain when closed."
           },
@@ -2033,7 +2133,7 @@
             pin: "5",
             name: "Window Sill & Apron",
             category: "Window Base Trim (Left)",
-            x: 32, y: 79,
+            x: 32, y: 79, bx: 48.0, by: 82.0,
             desc: "The sloped horizontal base member ('sill') at the bottom of the window frame that sheds rainwater outward, supported visually beneath the interior/exterior stool by a molded horizontal trim board ('apron').",
             spotter: "Spotter Tip: The underside of an exterior projecting stone or wood sill has a routed groove ('drip kerf') so water drops off instead of wicking back into the wall."
           },
@@ -2042,7 +2142,7 @@
             pin: "6",
             name: "Elliptical Fanlight (Arched Transom)",
             category: "Classical Door Surround (Right)",
-            x: 73.5, y: 23, pinLeft: true,
+            x: 73.5, y: 23, bx: 58.0, by: 13.0, pinLeft: true,
             desc: "A semi-circular or semi-elliptical glazed transom window crowning an entry door, featuring radiating muntin bars arranged like the ribs of an open fan beneath a keyed arch.",
             spotter: "Spotter Tip: Semi-circular fanlights are typical of Georgian entrances; wider, flatter elliptical fanlights are the signature of Federal / Adam style."
           },
@@ -2051,7 +2151,7 @@
             pin: "7",
             name: "Flanking Sidelights",
             category: "Classical Door Surround (Right)",
-            x: 66, y: 48, pinLeft: true,
+            x: 66, y: 48, bx: 55.0, by: 47.0, pinLeft: true,
             desc: "Narrow vertical glazed window panels flanking one or both sides of an entrance door to bring daylight into the entry hall, often resting atop small paneled wainscot bases.",
             spotter: "Spotter Tip: When combined with an overhead fanlight and pilasters, this forms the classic Federal / Greek Revival tripartite doorway."
           },
@@ -2060,7 +2160,7 @@
             pin: "8",
             name: "Stile-and-Rail Panel Door",
             category: "Door Carpentry (Right)",
-            x: 74.5, y: 55, pinLeft: true,
+            x: 74.5, y: 55, bx: 93.0, by: 56.0, pinLeft: true,
             desc: "Traditional mortise-and-tenon door construction composed of full-height vertical framing edges ('stiles'), horizontal cross-members (top rail, 'lock rail', bottom rail), and floating 'raised panels' that expand/contract with humidity.",
             spotter: "Spotter Tip: Remember: STILES always run vertically (like a fence stile); RAILS always run horizontally!"
           }
@@ -2078,7 +2178,7 @@
             pin: "1",
             name: "Dome, Cylindrical Drum & Oculus",
             category: "Dome Anatomy (Top-Left)",
-            x: 24.8, y: 8,
+            x: 24.8, y: 8, bx: 13.0, by: 7.0,
             desc: "A hemispherical masonry vault ('dome') elevated on a vertical cylindrical wall ('drum' or tholobate) and pierced at its zenith by a circular compression ring opening called an 'oculus' ('eye').",
             spotter: "Spotter Tip: Famous from the Roman Pantheon; the oculus lightens the dead weight at the crown where bending stresses are highest."
           },
@@ -2087,7 +2187,7 @@
             pin: "2",
             name: "Pendentive (Spherical Triangle Transition)",
             category: "Dome Support (Top-Left)",
-            x: 33.5, y: 23,
+            x: 33.5, y: 23, bx: 45.0, by: 24.0,
             desc: "A curved, concave triangular masonry surface (shaped like a corner sliced from a larger hemisphere) that smoothly transitions the four corners of a square bay into a continuous circular base for a dome.",
             spotter: "Spotter Tip: Perfected in Byzantine architecture (Hagia Sophia) and Renaissance domes (St. Peter's)."
           },
@@ -2096,7 +2196,7 @@
             pin: "3",
             name: "Squinch (Diagonal Corner Arch)",
             category: "Dome Support (Top-Right)",
-            x: 65, y: 21.5, pinLeft: true,
+            x: 65, y: 21.5, bx: 56.0, by: 18.0, pinLeft: true,
             desc: "An arch, lintel, or series of corbeled arches built diagonally across each of the four upper interior corners of a square room to transform the square plan into an octagon capable of carrying a dome.",
             spotter: "Spotter Tip: Pendentive vs. Squinch: A Pendentive is a smooth curved spherical triangle; a Squinch is an angled corner arch creating an 8-sided (octagonal) base!"
           },
@@ -2105,7 +2205,7 @@
             pin: "4",
             name: "Ribbed Groin Vault & Central Boss",
             category: "Gothic Vaulting (Bottom-Left)",
-            x: 25, y: 60,
+            x: 25, y: 60, bx: 11.0, by: 56.0,
             desc: "Formed by the perpendicular intersection of two masonry barrel vaults, reinforced along the diagonal intersections ('groins') and transverse arches by projecting stone 'ribs' that meet at a carved central keystone ('boss').",
             spotter: "Spotter Tip: The structural skeletal ribs allowed Gothic builders to make the web panels ('severies') much thinner and open the walls for stained glass."
           },
@@ -2114,7 +2214,7 @@
             pin: "5",
             name: "Flying Buttress & Pinnacle",
             category: "Gothic Lateral Bracing (Bottom-Left)",
-            x: 38.5, y: 74.5,
+            x: 38.5, y: 74.5, bx: 46.0, by: 85.0,
             desc: "An inclined exterior masonry arch ('flyer') that springs from the upper clerestory wall across the lower aisle roof to transfer outward vault thrust into a massive outer masonry pier weighted down by a pointed stone 'pinnacle'.",
             spotter: "Spotter Tip: The pointed pinnacle isn't just decorative—its dead weight bends the resultant force vector steeper downward so it stays inside the pier!"
           },
@@ -2123,7 +2223,7 @@
             pin: "6",
             name: "King Post (Central Tension Post)",
             category: "Timber Roof Truss (Bottom-Right)",
-            x: 71.5, y: 67, pinLeft: true,
+            x: 71.5, y: 67, bx: 57.0, by: 56.0, pinLeft: true,
             desc: "The central vertical timber post in a triangular roof truss, connecting the ridge apex of the principal rafters down to the midpoint of the horizontal tie beam, preventing the tie beam from sagging.",
             spotter: "Spotter Tip: Counterintuitively, a King Post is in TENSION (holding the bottom tie beam up), not compression! Diagonal 'struts' branch out from its base to brace the rafters."
           },
@@ -2132,7 +2232,7 @@
             pin: "7",
             name: "Tie Beam & Principal Rafters",
             category: "Timber Roof Truss (Bottom-Right)",
-            x: 67, y: 78, pinLeft: true,
+            x: 67, y: 78, bx: 61.0, by: 86.0, pinLeft: true,
             desc: "The heavy horizontal bottom chord ('tie beam') that ties the tops of the walls together against outward roof thrust, paired with the heavy diagonal 'principal rafters' that form the main structural triangle.",
             spotter: "Spotter Tip: If a truss uses two vertical posts instead of one central post, it is called a 'Queen-Post Truss'."
           },
@@ -2141,7 +2241,7 @@
             pin: "8",
             name: "Purlins & Common Rafters",
             category: "Roof Framing Hierarchy (Bottom-Right)",
-            x: 83.5, y: 66, pinLeft: true,
+            x: 83.5, y: 66, bx: 93.5, by: 58.0, pinLeft: true,
             desc: "Horizontal longitudinal beams ('purlins') spanning from truss to truss to support the closely spaced, lighter sloping 'common rafters' to which the roof sheathing is nailed.",
             spotter: "Spotter Tip: Load path: Roof Shingles -> Sheathing -> Common Rafters -> Horizontal Purlins -> Heavy Principal Rafters -> Walls."
           }
@@ -2159,7 +2259,7 @@
             pin: "1",
             name: "Georgian & Federal Style",
             category: "Colonial & Early National (Top-Left)",
-            x: 17.5, y: 19,
+            x: 17.5, y: 19, bx: 9.0, by: 30.7,
             desc: "Characterized by strict Palladian symmetry, a 5-bay brick facade, hipped roof with paired end chimneys, dentil cornice, a central pedimented doorway with an elliptical fanlight, and a tripartite Palladian window above the entrance.",
             spotter: "Spotter Tip: Georgian (1700–1780) favors heavier projecting modillion/dentil cornices and paneled doors; Federal/Adam (1780–1830) refines the entry with delicate elliptical fanlights and flanking sidelights."
           },
@@ -2168,7 +2268,7 @@
             pin: "2",
             name: "Greek Revival Style",
             category: "Classical Revival (Top-Center)",
-            x: 49, y: 18,
+            x: 49, y: 18, bx: 52.4, by: 12.1,
             desc: "Models domestic, civic, and bank buildings directly on the classical Greek temple front, featuring a low-pitched pedimented gable roof supported by a full-height colonnade of fluted Doric or Ionic columns and a heavy, wide unadorned entablature frieze.",
             spotter: "Spotter Tip: Unlike Roman/Georgian entries, Greek Revival doorways are almost always rectangular (flat lintel) rather than round-arched, because ancient Greek architecture did not use the arch!"
           },
@@ -2177,7 +2277,7 @@
             pin: "3",
             name: "Gothic Revival (Carpenter Gothic)",
             category: "Romantic Picturesque (Top-Right)",
-            x: 83, y: 18, pinLeft: true,
+            x: 83, y: 18, bx: 95.3, by: 7.0, pinLeft: true,
             desc: "Rejects classical symmetry in favor of steeply pitched cross-gables, lacy scroll-sawn wooden bargeboards ('vergeboards') dripping from the eaves, pointed-arch lancet windows with drip hoodmolds, vertical board-and-batten siding, and roof finials.",
             spotter: "Spotter Tip: Popularized in America by Andrew Jackson Downing and Alexander Jackson Davis; look immediately for the pointed lancet arches and scroll-sawn gable trim."
           },
@@ -2186,7 +2286,7 @@
             pin: "4",
             name: "Italianate Style",
             category: "Victorian Picturesque (Middle-Left)",
-            x: 17.5, y: 53,
+            x: 17.5, y: 53, bx: 11.6, by: 66.2,
             desc: "Inspired by northern Italian Renaissance villas: a vertical 2-to-4-story cubic mass crowned by a low-pitched hipped roof, wide overhanging eaves supported by prominent paired S-scroll console brackets, and tall, narrow round-arched windows with heavy hoodmolds.",
             spotter: "Spotter Tip: If you see wide eaves lined with heavy decorative brackets and tall narrow hooded windows, it is almost certainly Italianate."
           },
@@ -2195,7 +2295,7 @@
             pin: "5",
             name: "Second Empire Style",
             category: "High Victorian (Middle-Center)",
-            x: 50, y: 50,
+            x: 50, y: 50, bx: 35.6, by: 51.5,
             desc: "Defined by its unmistakable dual-pitched Mansard roof on all four sides—pierced by ornate hooded dormer windows and topped by decorative cast-iron roof cresting—paired with a projecting central pavilion and paired classical columns.",
             spotter: "Spotter Tip: Named after Napoleon III's Second French Empire (when Baron Haussmann rebuilt Paris); the steep 4-sided Mansard roof is the 100% diagnostic signature of Second Empire."
           },
@@ -2204,7 +2304,7 @@
             pin: "6",
             name: "Queen Anne Victorian Style",
             category: "Late Victorian (Middle-Right)",
-            x: 83.5, y: 52, pinLeft: true,
+            x: 83.5, y: 52, bx: 93.2, by: 65.3, pinLeft: true,
             desc: "The pinnacle of Late Victorian picturesque exuberance: an asymmetrical cross-gabled silhouette anchored by a polygonal or cylindrical corner turret with a steep conical ('witch's-hat') roof, a wrap-around spindlework veranda, and patterned fish-scale shingle gables.",
             spotter: "Spotter Tip: Queen Anne architects avoided flat walls at all costs—using projecting bays, overhangs, cutaway corners, and multi-patterned shingle bands."
           },
@@ -2213,7 +2313,7 @@
             pin: "7",
             name: "Richardsonian Romanesque Style",
             category: "Monumental Masonry (Bottom-Center)",
-            x: 50, y: 83,
+            x: 50, y: 83, bx: 48.5, by: 68.6,
             desc: "Developed by Boston architect Henry Hobson Richardson: characterized by massive, quarry-rough rock-faced rusticated stone walls, a cavernous round-arched 'Syrian arch' entrance portal springing from low squat clustered columns, deep-set window bands, and stout cylindrical corner towers.",
             spotter: "Spotter Tip: Look for the heavy rough-cut sandstone/granite blocks and the dramatic wide semicircular arch that seems to sit almost directly on the ground."
           },
@@ -2222,7 +2322,7 @@
             pin: "8",
             name: "Rooftop Cupola / Belvedere",
             category: "Italianate Crown (Middle-Left Roof)",
-            x: 17.5, y: 38,
+            x: 17.5, y: 38, bx: 24.8, by: 34.7,
             desc: "A square or octagonal windowed lookout lantern ('belvedere' = 'fair view') crowning the apex of an Italianate hipped roof, providing both a panoramic view and a thermal stack chimney to vent hot summer air up through the central stairwell.",
             spotter: "Spotter Tip: Technically, a 'cupola' is a small dome or vaulted roof structure, while a square windowed lookout tower on an Italianate villa is a 'belvedere'."
           }
@@ -2240,7 +2340,7 @@
             pin: "1",
             name: "Beaux-Arts Classicism",
             category: "Academic Eclectic (Top-Left)",
-            x: 19, y: 20,
+            x: 19, y: 20, bx: 8.0, by: 7.7,
             desc: "Monumental civic and institutional classicism taught at Paris's École des Beaux-Arts: symmetrical cut-stone ashlar facades, a rusticated ground-story base supporting paired colossal Corinthian columns, exuberant sculpted floral swags/festoons, oval cartouche shields, and a balustraded attic parapet.",
             spotter: "Spotter Tip: How to distinguish Beaux-Arts from Neoclassical/Greek Revival: Beaux-Arts uses PAIRED columns, advance-and-recess wall planes, and lavishly sculpted garlands, shields, and figural sculpture."
           },
@@ -2249,7 +2349,7 @@
             pin: "2",
             name: "Tudor Revival Style",
             category: "Period Revival (Top-Center)",
-            x: 51, y: 20,
+            x: 51, y: 20, bx: 38.4, by: 12.7,
             desc: "Draws on late-medieval English domestic prototypes: steeply pitched intersecting cross-gables, decorative dark half-timbering infilled with stucco or herringbone brick ('nogging'), tall narrow groups of multi-pane leaded diamond casement windows, and a massive front chimney crowned with clay chimney pots.",
             spotter: "Spotter Tip: On 20th-century American Tudor Revival houses, the half-timbering is an applied decorative board veneer over wood framing rather than a true medieval heavy timber frame."
           },
@@ -2258,7 +2358,7 @@
             pin: "3",
             name: "Spanish Colonial & Mission Revival",
             category: "Mediterranean Revival (Top-Right)",
-            x: 84, y: 20, pinLeft: true,
+            x: 84, y: 20, bx: 87.0, by: 5.8, pinLeft: true,
             desc: "Defined by smooth whitewashed stucco walls, low-pitched red clay barrel-tile ('Mission tile') roofs, a shaped curvilinear Mission Alamo gable parapet ('espadaña') pierced by arched bell niches, and a ground-floor recessed round-arched arcade walkway.",
             spotter: "Spotter Tip: Mission Revival is identified by the curved Alamo-style parapet gable and arcaded loggia; Spanish Colonial Revival adds wrought-iron grilles ('rejas') and carved Churrigueresque stone doorways."
           },
@@ -2267,7 +2367,7 @@
             pin: "4",
             name: "Prairie School Style",
             category: "Early Modern American (Middle-Left)",
-            x: 19, y: 51,
+            x: 19, y: 51, bx: 13.4, by: 43.3,
             desc: "Pioneered by Frank Lloyd Wright in the Midwest to echo the flat prairie horizon: low-pitched hipped roofs with dramatic wide cantilevered overhanging eaves, continuous horizontal 'ribbon' bands of casement windows, horizontal brick/stucco banding, and a broad, low central hearth chimney.",
             spotter: "Spotter Tip: Every detail in Prairie School suppresses verticality and emphasizes horizontal continuity—even the mortar joints were often raked deeply horizontally while vertical joints were flush!"
           },
@@ -2276,7 +2376,7 @@
             pin: "5",
             name: "Art Deco Style",
             category: "Modernistic Jazz Age (Middle-Center)",
-            x: 51, y: 52,
+            x: 51, y: 52, bx: 42.8, by: 47.2,
             desc: "Celebrates verticality and machine-age luxury: soaring vertical piers rising to stepped 'ziggurat' skyscraper setbacks (inspired by the 1916 NYC Zoning Law), paired with low-relief geometric ornament of chevrons, zigzags, sunbursts, and stylized flora in terra cotta or cast stone.",
             spotter: "Spotter Tip: Art Deco is VERTICAL, angular, and ornamented (chevrons, ziggurats, sunbursts); its 1930s sibling Streamline Moderne is HORIZONTAL, aerodynamic, and stripped of surface carving."
           },
@@ -2285,7 +2385,7 @@
             pin: "6",
             name: "Streamline Moderne Style",
             category: "Aerodynamic Modern (Middle-Right)",
-            x: 82, y: 51, pinLeft: true,
+            x: 82, y: 51, bx: 91.7, by: 64.3, pinLeft: true,
             desc: "Inspired by industrial wind-tunnel aerodynamics, ocean liners, and locomotives: horizontal massing with smooth stucco walls, sweeping curved building corners, glass-block wrap windows, horizontal 'speed-line' grooves, round nautical porthole windows, and flat roofs with ship-style pipe railings.",
             spotter: "Spotter Tip: Look for the 'Rule of Three' horizontal speed lines, curved glass-block corners, and round porthole windows."
           },
@@ -2294,7 +2394,7 @@
             pin: "7",
             name: "International Style (Pilotis & Ribbon Glazing)",
             category: "High Modernism (Bottom-Left)",
-            x: 24, y: 82,
+            x: 24, y: 82, bx: 18.9, by: 77.4,
             desc: "Codified by Le Corbusier's 'Five Points of Architecture', Mies van der Rohe, and Walter Gropius: a taut rectilinear volume treated as weightless enclosure rather than heavy mass, lifted off the ground on slender cylindrical reinforced-concrete columns ('pilotis'), with flush horizontal ribbon windows and a flat roof.",
             spotter: "Spotter Tip: Notice how the structural columns (pilotis) are set back inside the floor slab, freeing the exterior wall to carry uninterrupted horizontal ribbon windows."
           },
@@ -2303,7 +2403,7 @@
             pin: "8",
             name: "Brutalism (Béton Brut & Eggcrate Brise-Soleil)",
             category: "Late Modernism (Bottom-Right)",
-            x: 74, y: 82, pinLeft: true,
+            x: 74, y: 82, bx: 71.0, by: 67.8, pinLeft: true,
             desc: "Coined from Le Corbusier's French phrase béton brut ('raw concrete'): monumental, fortress-like sculptural massing of unpainted board-formed cast-in-place concrete, dramatic top-heavy cantilevered upper stories, and deeply recessed precast concrete 'eggcrate' sun-shading window grids (brise-soleil).",
             spotter: "Spotter Tip: Whereas International Style strives to look light, thin, and weightless, Brutalism celebrates massive structural weight, shadow depth, and the rough wood-grain imprint of concrete formwork."
           }
@@ -2321,7 +2421,7 @@
             pin: "1",
             name: "Two-Part Commercial Block",
             category: "Main Street Taxonomy (Top-Left)",
-            x: 19, y: 18,
+            x: 19, y: 18, bx: 8.2, by: 15.7,
             desc: "Architectural historian Richard Longstreth's most common American commercial facade type (2 to 4 stories): horizontally divided into a transparent ground-floor retail storefront zone (large plate-glass windows and cast-iron piers) and a distinct upper masonry zone of repetitive office/residential windows capped by a bracketed cornice.",
             spotter: "Spotter Tip: Walk down any historic 19th-century Main Street in America and 80% of the buildings are Two-Part Commercial Blocks."
           },
@@ -2330,7 +2430,7 @@
             pin: "2",
             name: "One-Part Commercial Block",
             category: "Main Street Taxonomy (Top-Center)",
-            x: 50, y: 21,
+            x: 50, y: 21, bx: 50.0, by: 6.5,
             desc: "A single-story freestanding or row retail building whose street facade consists almost entirely of a plate-glass storefront, recessed entrance, and prism-glass transom band, topped by a tall masonry false-front or stepped parapet wall used for signage and architectural ornament.",
             spotter: "Spotter Tip: Because there are no upper floors, the building is a single unified commercial zone ('One-Part') crowned by a decorative parapet."
           },
@@ -2339,7 +2439,7 @@
             pin: "3",
             name: "Stacked Vertical Block (Base / Shaft / Capital)",
             category: "Tripartite Skyscraper (Top-Right)",
-            x: 83.5, y: 17, pinLeft: true,
+            x: 83.5, y: 17, bx: 95.4, by: 13.1, pinLeft: true,
             desc: "Louis Sullivan's and Richard Longstreth's tripartite tall-building composition modeled on a classical column: a 2-story monumental rusticated arcade 'Base' at the street, a tall multi-story 'Shaft' of repetitive vertical piers and recessed spandrels, and an ornate colonnaded and corniced 'Capital' crowning the top.",
             spotter: "Spotter Tip: Exemplified by Louis Sullivan's Wainwright Building (St. Louis) and Guaranty Building (Buffalo)—translating the classical column into steel-frame skyscraper form."
           },
@@ -2348,7 +2448,7 @@
             pin: "4",
             name: "Enframed Window Wall",
             category: "Main Street Taxonomy (Middle-Left)",
-            x: 17, y: 53,
+            x: 17, y: 53, bx: 12.5, by: 66.8,
             desc: "A 2-to-4-story commercial facade composition in which a wide, continuous surrounding border frame of heavy masonry or terra cotta visually boxes in a large recessed central grid of multi-story glazing, unifying the entire front like a picture frame.",
             spotter: "Spotter Tip: Popular for early 20th-century department stores, furniture showrooms, and auto dealerships that wanted maximum daylight across multiple floors."
           },
@@ -2357,7 +2457,7 @@
             pin: "5",
             name: "Basilica Plan (Nave, Clerestory & Side Aisles)",
             category: "Sacred Liturgical Plan (Middle-Center)",
-            x: 47, y: 52,
+            x: 47, y: 52, bx: 36.2, by: 49.7,
             desc: "Derived from Roman civic halls and adopted for early Christian and medieval churches: a longitudinal vessel with a tall central 'Nave' carried on interior arcades and lit from above by high 'Clerestory' windows, flanked by lower 'Side Aisles' and crossed by a perpendicular 'Transept'.",
             spotter: "Spotter Tip: The step-down in roof height between the tall central Nave and the lower Side Aisles is what creates the vertical wall band for Clerestory windows!"
           },
@@ -2366,7 +2466,7 @@
             pin: "6",
             name: "Semicircular Apse (Vaulted Sanctuary)",
             category: "Sacred Liturgical Plan (Middle-Center East End)",
-            x: 59, y: 45, pinLeft: true,
+            x: 59, y: 45, bx: 65.8, by: 44.3, pinLeft: true,
             desc: "The semicircular or polygonal recessed termination at the liturgical east end of a basilica or cathedral beyond the crossing/choir, typically roofed by a hemispherical half-dome ('conch') directly above the high altar.",
             spotter: "Spotter Tip: In Roman basilicas the apse held the magistrate's tribunal seat; in churches it houses the sanctuary and bishop's cathedra."
           },
@@ -2375,7 +2475,7 @@
             pin: "7",
             name: "Rotunda & Tholos (Centralized Domed Hall)",
             category: "Civic & Sacred Typology (Middle-Right)",
-            x: 80, y: 58, pinLeft: true,
+            x: 80, y: 58, bx: 85.1, by: 69.4, pinLeft: true,
             desc: "A circular building covered by a central dome ('Rotunda') and ringed around its exterior perimeter by a freestanding circular colonnade ('Tholos' or peristyle), used for classical temples, state capitol hearts, and memorial halls.",
             spotter: "Spotter Tip: Famous examples include the Roman Pantheon, Bramante's Tempietto, Thomas Jefferson's UVA Rotunda, and the US Capitol Rotunda."
           },
@@ -2384,7 +2484,7 @@
             pin: "8",
             name: "Campanile (Freestanding Bell Tower)",
             category: "Civic & Sacred Typology (Middle-Right Tower)",
-            x: 93, y: 49, pinLeft: true,
+            x: 93, y: 49, bx: 87.5, by: 45.0, pinLeft: true,
             desc: "From the Italian campana ('bell'): a tall, slender square or circular bell tower built as a freestanding vertical monument adjacent to a church, cathedral, or civic piazza rather than integrated into the building's structural body.",
             spotter: "Spotter Tip: Classic prototypes include St. Mark's Campanile in Venice, Giotto's Campanile in Florence, the Leaning Tower of Pisa, and university campus clock towers."
           },
@@ -2393,7 +2493,7 @@
             pin: "9",
             name: "Recessed Loggia (Open-Air Gallery Inside Mass)",
             category: "Massing Contrast (Bottom-Center Left)",
-            x: 42, y: 84,
+            x: 42, y: 84, bx: 33.0, by: 86.9,
             desc: "A roofed, open-air arcaded or colonnaded gallery that is RECESSED inside the main structural volume of a building (either at ground level or on an upper story) so that the exterior wall plane and upper floors sit directly flush above it.",
             spotter: "Spotter Tip: Loggia vs. Portico: A Loggia is carved INTO the building block; a Portico sticks OUT from the building block!"
           },
@@ -2402,7 +2502,7 @@
             pin: "10",
             name: "Projecting Temple-Front Portico",
             category: "Massing Contrast (Bottom-Center Right)",
-            x: 59, y: 88, pinLeft: true,
+            x: 59, y: 88, bx: 68.5, by: 88.0, pinLeft: true,
             desc: "A formal roofed porch supported by classical columns and crowned by a triangular pediment that PROJECTS outward in front of the main building wall to shelter the principal entrance.",
             spotter: "Spotter Tip: Compare directly with the Recessed Loggia on the left half of this cutaway specimen."
           }
@@ -2420,7 +2520,7 @@
             pin: "1",
             name: "Shotgun House & Camelback",
             category: "Vernacular House Type (Top-Left)",
-            x: 19, y: 19,
+            x: 19, y: 19, bx: 9.3, by: 8.2,
             desc: "An iconic Southern vernacular house type (rooted in Afro-Haitian and New Orleans building traditions): a narrow, 1-story rectangular dwelling just one room wide with rooms lined up directly behind one another without a side hallway; the 'Camelback' variation adds a partial 2-story hump at the rear.",
             spotter: "Spotter Tip: Named after the folklore that a shotgun fired through the front door would fly straight out the back door without hitting a wall; Camelbacks were built because cities taxed houses by the number of stories at the street facade!"
           },
@@ -2429,7 +2529,7 @@
             pin: "2",
             name: "New England Saltbox House",
             category: "Colonial Vernacular (Top-Center)",
-            x: 51, y: 19,
+            x: 51, y: 19, bx: 56.1, by: 7.6,
             desc: "A classic 17th- and 18th-century New England timber-frame house type with two full stories in front and a long, continuous steeply pitched rear 'catslide' roof slope sweeping down to a single story at the back, anchored around a massive central masonry chimney.",
             spotter: "Spotter Tip: Named after the wooden lidded boxes used to store salt by a colonial hearth; evolved by roofing over a rear 1-story 'lean-to' addition."
           },
@@ -2438,7 +2538,7 @@
             pin: "3",
             name: "Urban Rowhouse / Brownstone (Stoop & Piano Nobile)",
             category: "Urban Vernacular (Top-Right)",
-            x: 84, y: 19, pinLeft: true,
+            x: 84, y: 19, bx: 91.8, by: 17.3, pinLeft: true,
             desc: "A narrow, deep multi-story townhome sharing common structural brick 'party walls' with its neighbors, featuring a steep exterior masonry staircase ('high stoop') that rises from the sidewalk over a rusticated English basement directly to the formal second-floor parlor level (piano nobile).",
             spotter: "Spotter Tip: The word 'stoop' comes from the Dutch stoep (introduced in New Amsterdam/NYC) to lift the formal parlor floor above street mud and noise."
           },
@@ -2447,7 +2547,7 @@
             pin: "4",
             name: "Mid-Century Ranch House",
             category: "Post-War Residential (Middle-Left)",
-            x: 21, y: 49,
+            x: 21, y: 49, bx: 21.0, by: 60.0,
             desc: "The dominant American residential typology of 1945–1970: a low-slung, asymmetrical 1-story house with a rambling L- or U-shaped horizontal footprint, low-pitched hipped or gable roof, deep overhanging eaves, a large front 'picture window', and an integrated street-facing attached garage.",
             spotter: "Spotter Tip: Contrast with earlier compact 2-story houses (like the Foursquare): the Ranch was designed for wider suburban automobile lots, merging indoor living with backyard patios."
           },
@@ -2456,7 +2556,7 @@
             pin: "5",
             name: "Coffered Ceiling & Crown Molding",
             category: "Interior Ceiling Anatomy (Middle-Right Top)",
-            x: 74, y: 40, pinLeft: true,
+            x: 74, y: 40, bx: 74.7, by: 33.2, pinLeft: true,
             desc: "A formal ceiling subdivided by intersecting beams into a grid of sunken square or octagonal recessed panels ('coffers' or lacunaria), bordered around the perimeter wall-to-ceiling junction by a sprung classical cornice ('crown molding').",
             spotter: "Spotter Tip: In ancient Roman stone domes and vaults, sunken coffers reduced the dead weight of the ceiling while creating deep shadow grids."
           },
@@ -2465,7 +2565,7 @@
             pin: "6",
             name: "Wainscoting (Raised-Panel Dado, Chair Rail & Baseboard)",
             category: "Interior Wall Millwork (Middle-Right Lower)",
-            x: 74, y: 56, pinLeft: true,
+            x: 74, y: 56, bx: 79.4, by: 50.1, pinLeft: true,
             desc: "Classical tripartite wall division on the lower third of an interior room: a protective wooden 'Baseboard' (plinth) at the floor, framed recessed or raised wood 'Dado' panels ('wainscoting'), and a horizontal 'Chair Rail' molding cap at chair-back height.",
             spotter: "Spotter Tip: The tripartite interior wall mirrors the classical column: Baseboard = Column Base, Dado = Pedestal/Shaft, Chair Rail = Pedestal Cap, Crown Molding = Entablature Cornice!"
           },
@@ -2474,7 +2574,7 @@
             pin: "7",
             name: "Newel Post & Balusters (Staircase Balustrade)",
             category: "Staircase Joinery (Bottom-Left Foot)",
-            x: 21, y: 88,
+            x: 21, y: 88, bx: 28.1, by: 94.4,
             desc: "The heavy, structural vertical anchor post at the foot or landing turn of a staircase ('Newel Post') paired with the closely spaced vertical turned spindles ('Balusters' or banisters) that support the sloped handrail.",
             spotter: "Spotter Tip: A single vertical spindle is a 'baluster'; the entire assembly of newel post + balusters + handrail is called a 'balustrade'."
           },
@@ -2483,7 +2583,7 @@
             pin: "8",
             name: "Open Stringer, Tread, Riser & Nosing",
             category: "Staircase Joinery (Bottom-Left Profile)",
-            x: 27, y: 79,
+            x: 27, y: 79, bx: 19.3, by: 73.4,
             desc: "An 'Open Stringer' staircase where the diagonal outer carriage board is notched/mitered so the ends of the horizontal step boards ('Treads', with their rounded front edge 'Nosing') and vertical kick boards ('Risers') remain exposed in profile.",
             spotter: "Spotter Tip: In a 'Closed (Box) Stringer' stair, a continuous diagonal board hides the ends of the treads and risers; in an 'Open Stringer' stair, you see the sawtooth step profile from the side!"
           },
@@ -2492,7 +2592,7 @@
             pin: "9",
             name: "Inglenook & Classical Chimneypiece (Mantel & Overmantel)",
             category: "Interior Hearth Anatomy (Bottom-Right)",
-            x: 75, y: 82, pinLeft: true,
+            x: 75, y: 82, bx: 65.5, by: 76.5, pinLeft: true,
             desc: "A cozy recessed fireside alcove ('Inglenook', from Scots ingle = 'hearth fire') flanked by built-in wooden benches ('settles'), framing a classical fireplace 'Chimneypiece' composed of a pilastered surround, projecting 'Mantelpiece' shelf, and carved paneled 'Overmantel' above.",
             spotter: "Spotter Tip: Inglenooks were a signature feature of Arts & Crafts, Craftsman Bungalow, Tudor Revival, and Prairie School interiors."
           }
@@ -2965,6 +3065,7 @@
 
       const fig = document.getElementById("quiz-plate-figure");
       fig.classList.toggle("mc-mode-figure", state.quizMode !== "pinpoint");
+      fig.style.transformOrigin = `${targetPart.x}% ${targetPart.y}%`;
 
       const peekBtn = document.getElementById("btn-quiz-study-peek");
       const activeImgKey = (state.quizPeekAnnotated && plate.annotatedKey) ? plate.annotatedKey : plate.imgKey;
@@ -3004,6 +3105,7 @@
 
       const layer = document.getElementById("quiz-hotspot-layer");
       layer.innerHTML = "";
+      const svgEl = createLeaderSvg(layer);
 
       if (state.quizMode === "pinpoint") {
         document.getElementById("quiz-cat-kicker").textContent = `${targetPart.category.toUpperCase()} \u2022 TAP PIN ON DRAWING`;
@@ -3013,21 +3115,17 @@
 
         if (!state.quizPeekAnnotated) {
           plate.parts.forEach((part) => {
-            const btn = document.createElement("button");
             const partUid = `${q.plateKey}__${part.id}`;
-            const pinLeft = part.pinLeft || part.x > 55;
-            btn.className = "hotspot-pin" +
-              (pinLeft ? " pin-left" : "") +
-              (masteredSet.has(partUid) ? " mastered-pin" : "") +
-              (state.quizAnswered && part.id === q.targetId ? " correct" : "");
-            btn.style.left = part.x + "%";
-            btn.style.top = part.y + "%";
-            btn.innerHTML = (state.quizAnswered && part.id === q.targetId)
-              ? `${part.pin}<span class="hotspot-label-tag">${part.name}</span>`
-              : (state.quizShowPins ? part.pin : "\u2022");
-            btn.setAttribute("aria-label", `Target Pin ${part.pin}`);
-            btn.addEventListener("click", () => handleQuizPinClick(part, btn, q, plate));
-            layer.appendChild(btn);
+            const isCorrect = state.quizAnswered && part.id === q.targetId;
+            appendLeaderPin(layer, svgEl, part, {
+              badgeHtml: isCorrect
+                ? `${part.pin}<span class="hotspot-label-tag">${part.name}</span>`
+                : (state.quizShowPins ? part.pin : "\u2022"),
+              isMastered: masteredSet.has(partUid),
+              isCorrect: isCorrect,
+              ariaLabel: `Target Pin ${part.pin}`,
+              onClick: (btn, lineEl, dotEl) => handleQuizPinClick(part, btn, q, plate, lineEl, dotEl)
+            });
           });
         }
       } else if (state.quizMode === "reverse_mc") {
@@ -3037,20 +3135,17 @@
           : `What is at Pin #${targetPart.pin} (?)`;
         clueEl.textContent = state.quizAnswered
           ? targetPart.desc
-          : "Inspect the pulsing '?' marker on the drawing and tap the matching architectural term below.";
+          : "Inspect the hollow view-finder ring on the drawing (connected to '?') and tap the matching architectural term below.";
 
         if (!state.quizPeekAnnotated) {
-          const btn = document.createElement("button");
-          const pinLeft = targetPart.pinLeft || targetPart.x > 55;
-          btn.className = "hotspot-pin mystery-target" +
-            (pinLeft ? " pin-left" : "") +
-            (state.quizAnswered ? " correct" : "");
-          btn.style.left = targetPart.x + "%";
-          btn.style.top = targetPart.y + "%";
-          btn.innerHTML = state.quizAnswered
-            ? `${targetPart.pin}<span class="hotspot-label-tag">${targetPart.name}</span>`
-            : "?";
-          layer.appendChild(btn);
+          appendLeaderPin(layer, svgEl, targetPart, {
+            badgeHtml: state.quizAnswered
+              ? `${targetPart.pin}<span class="hotspot-label-tag">${targetPart.name}</span>`
+              : "?",
+            isMystery: true,
+            isCorrect: state.quizAnswered,
+            ariaLabel: `Mystery Pin ${targetPart.pin}`
+          });
         }
 
         renderMultipleChoiceButtons(mcContainer, q, targetPart);
@@ -3062,17 +3157,75 @@
         clueEl.textContent = targetPart.desc;
 
         if (!state.quizPeekAnnotated && state.quizAnswered) {
-          const btn = document.createElement("button");
-          const pinLeft = targetPart.pinLeft || targetPart.x > 55;
-          btn.className = "hotspot-pin correct" + (pinLeft ? " pin-left" : "");
-          btn.style.left = targetPart.x + "%";
-          btn.style.top = targetPart.y + "%";
-          btn.innerHTML = `${targetPart.pin}<span class="hotspot-label-tag">${targetPart.name}</span>`;
-          layer.appendChild(btn);
+          appendLeaderPin(layer, svgEl, targetPart, {
+            badgeHtml: `${targetPart.pin}<span class="hotspot-label-tag">${targetPart.name}</span>`,
+            isCorrect: true,
+            ariaLabel: `Pin ${targetPart.pin}`
+          });
         }
 
         renderMultipleChoiceButtons(mcContainer, q, targetPart);
       }
+    }
+
+    function createLeaderSvg(layer) {
+      const svgNS = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(svgNS, "svg");
+      svg.setAttribute("class", "leader-svg");
+      svg.setAttribute("viewBox", "0 0 100 100");
+      svg.setAttribute("preserveAspectRatio", "none");
+      layer.appendChild(svg);
+      return svg;
+    }
+
+    function appendLeaderPin(layer, svgEl, part, opts) {
+      const svgNS = "http://www.w3.org/2000/svg";
+      const bx = (part.bx !== undefined) ? part.bx : part.x;
+      const by = (part.by !== undefined) ? part.by : part.y;
+
+      const line = document.createElementNS(svgNS, "line");
+      line.setAttribute("x1", part.x);
+      line.setAttribute("y1", part.y);
+      line.setAttribute("x2", bx);
+      line.setAttribute("y2", by);
+      line.setAttribute("class", "leader-line" +
+        (opts.isSelected || opts.isMystery ? " active-leader" : "") +
+        (opts.isCorrect ? " correct-leader" : ""));
+      svgEl.appendChild(line);
+
+      const dot = document.createElement("button");
+      dot.type = "button";
+      dot.className = "hotspot-anchor-dot" +
+        (opts.isMystery ? " mystery-ring" : "") +
+        (opts.isSelected ? " active-anchor" : "") +
+        (opts.isCorrect ? " correct-anchor" : "");
+      dot.style.left = part.x + "%";
+      dot.style.top = part.y + "%";
+      dot.setAttribute("aria-label", opts.ariaLabel || `Pin ${part.pin} target`);
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      const pinLeft = part.pinLeft || bx > 55;
+      btn.className = "hotspot-pin" +
+        (pinLeft ? " pin-left" : "") +
+        (opts.isMystery ? " mystery-target" : "") +
+        (opts.isMastered ? " mastered-pin" : "") +
+        (opts.isSelected ? " selected" : "") +
+        (opts.isCorrect ? " correct" : "");
+      btn.style.left = bx + "%";
+      btn.style.top = by + "%";
+      btn.innerHTML = opts.badgeHtml;
+      if (opts.ariaLabel) btn.setAttribute("aria-label", opts.ariaLabel);
+
+      if (opts.onClick) {
+        const trigger = () => opts.onClick(btn, line, dot);
+        btn.addEventListener("click", trigger);
+        dot.addEventListener("click", trigger);
+      }
+
+      layer.appendChild(dot);
+      layer.appendChild(btn);
+      return { btn, line, dot };
     }
 
     function renderMultipleChoiceButtons(container, q, targetPart) {
@@ -3129,7 +3282,7 @@
       });
     }
 
-    function handleQuizPinClick(part, btnEl, q, plate) {
+    function handleQuizPinClick(part, btnEl, q, plate, lineEl, dotEl) {
       const fbBox = document.getElementById("quiz-feedback-box");
       const fbTitle = document.getElementById("quiz-feedback-title");
       const fbBody = document.getElementById("quiz-feedback-body");
@@ -3138,6 +3291,8 @@
       if (part.id === q.targetId) {
         btnEl.classList.remove("wrong");
         btnEl.classList.add("correct");
+        if (lineEl) lineEl.setAttribute("class", "leader-line correct-leader");
+        if (dotEl) dotEl.classList.add("correct-anchor");
         btnEl.innerHTML = `${part.pin}<span class="hotspot-label-tag">${part.name}</span>`;
 
         if (!state.quizAnswered) {
@@ -3211,31 +3366,32 @@
 
       const layer = document.getElementById("contrast-hotspot-layer");
       layer.innerHTML = "";
+      const svgEl = createLeaderSvg(layer);
       if (!state.contrastPeekAnnotated) {
         [partA, partB].forEach((part, idx) => {
-          const btn = document.createElement("button");
-          const pinLeft = part.pinLeft || part.x > 55;
-          btn.className = "hotspot-pin" + (pinLeft ? " pin-left" : "");
-          btn.style.left = part.x + "%";
-          btn.style.top = part.y + "%";
-          btn.textContent = idx === 0 ? "A" : "B";
-          btn.addEventListener("click", () => {
-            if (part.id === targetPart.id) {
-              btn.classList.remove("wrong");
-              btn.classList.add("correct");
-              btn.innerHTML = `${idx === 0 ? "A" : "B"}<span class="hotspot-label-tag">${part.name}</span>`;
-              fbBox.className = "feedback-box visible correct";
-              document.getElementById("contrast-feedback-title").innerHTML = `<span>&#10003; Correct! That is ${part.name}</span>`;
-              document.getElementById("contrast-feedback-body").textContent = part.spotter;
-            } else {
-              btn.classList.add("wrong");
-              setTimeout(() => btn.classList.remove("wrong"), 500);
-              fbBox.className = "feedback-box visible wrong";
-              document.getElementById("contrast-feedback-title").innerHTML = `<span>&#10007; That is ${otherPart.name}</span>`;
-              document.getElementById("contrast-feedback-body").textContent = `Look carefully at the difference: ${targetPart.spotter}`;
+          const label = idx === 0 ? "A" : "B";
+          appendLeaderPin(layer, svgEl, part, {
+            badgeHtml: label,
+            ariaLabel: `Contrast Pin ${label}`,
+            onClick: (btn, lineEl, dotEl) => {
+              if (part.id === targetPart.id) {
+                btn.classList.remove("wrong");
+                btn.classList.add("correct");
+                if (lineEl) lineEl.setAttribute("class", "leader-line correct-leader");
+                if (dotEl) dotEl.classList.add("correct-anchor");
+                btn.innerHTML = `${label}<span class="hotspot-label-tag">${part.name}</span>`;
+                fbBox.className = "feedback-box visible correct";
+                document.getElementById("contrast-feedback-title").innerHTML = `<span>&#10003; Correct! That is ${part.name}</span>`;
+                document.getElementById("contrast-feedback-body").textContent = part.spotter;
+              } else {
+                btn.classList.add("wrong");
+                setTimeout(() => btn.classList.remove("wrong"), 500);
+                fbBox.className = "feedback-box visible wrong";
+                document.getElementById("contrast-feedback-title").innerHTML = `<span>&#10007; That is ${otherPart.name}</span>`;
+                document.getElementById("contrast-feedback-body").textContent = `Look carefully at the difference: ${targetPart.spotter}`;
+              }
             }
           });
-          layer.appendChild(btn);
         });
       }
     }
@@ -3279,22 +3435,21 @@
 
       const layer = document.getElementById("atlas-hotspot-layer");
       layer.innerHTML = "";
+      const svgEl = createLeaderSvg(layer);
       if (state.atlasViewMode !== "annotated") {
         plate.parts.forEach((part) => {
-          const btn = document.createElement("button");
           const isSel = part.id === selectedPart.id;
-          const pinLeft = part.pinLeft || part.x > 55;
-          btn.className = "hotspot-pin" + (isSel ? " selected" : "") + (pinLeft ? " pin-left" : "");
-          btn.style.left = part.x + "%";
-          btn.style.top = part.y + "%";
-          btn.innerHTML = isSel
-            ? `${part.pin}<span class="hotspot-label-tag">${part.name}</span>`
-            : part.pin;
-          btn.addEventListener("click", () => {
-            state.atlasSelectedId = part.id;
-            renderAtlas();
+          appendLeaderPin(layer, svgEl, part, {
+            badgeHtml: isSel
+              ? `${part.pin}<span class="hotspot-label-tag">${part.name}</span>`
+              : part.pin,
+            isSelected: isSel,
+            ariaLabel: `Atlas Pin ${part.pin}`,
+            onClick: () => {
+              state.atlasSelectedId = part.id;
+              renderAtlas();
+            }
           });
-          layer.appendChild(btn);
         });
       }
 
