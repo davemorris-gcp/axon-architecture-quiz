@@ -609,6 +609,34 @@
       right: calc(100% + 6px);
     }
 
+    .whole-specimen-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: var(--bg-card);
+      color: var(--accent-primary);
+      border: 1.5px solid var(--accent-primary);
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      pointer-events: none;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+      z-index: 20;
+      max-width: calc(100% - 16px);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .whole-specimen-badge.correct {
+      background: var(--accent-correct);
+      color: #FFFFFF;
+      border-color: #FFFFFF;
+    }
+
     /* Right Panel / Controls & Quiz Inspector */
     .inspector-card {
       background: var(--bg-card);
@@ -5136,17 +5164,375 @@
 
     let ALL_QUIZ_QUESTIONS = buildRandomizedQuizQuestions(BASE_QUIZ_QUESTIONS);
 
-    function getMultipleChoiceOptions(q) {
-      const plate = PLATE_CATALOG[q.plateKey];
-      const samePlateOthers = plate.parts.filter(p => p.id !== q.targetId).map(p => p.name);
-      const distractors = [];
-      let seed = (q.uid.split("").reduce((acc, ch) => (acc * 31 + ch.charCodeAt(0)) % 1000003, 0) + sessionQuizSalt) % 1000003;
-      const pool = [...samePlateOthers];
-      while (distractors.length < 3 && pool.length > 0) {
-        const idx = seed % pool.length;
-        distractors.push(pool.splice(idx, 1)[0]);
-        seed = (seed * 37 + 19) % 1000003;
+    const QUESTION_TYPE_META = {
+      arch_style: {
+        kicker: "ARCHITECTURAL STYLE • WHOLE BUILDING",
+        promptReverseMc: "What architectural style or movement is this building?",
+        promptClueMc: "Which architectural style matches this description?",
+        isWholeBuilding: true,
+        wholeBadge: "🏛️ Whole Building Style",
+        fallbacks: ["house_type", "commercial_type"]
+      },
+      house_type: {
+        kicker: "RESIDENTIAL TYPOLOGY • WHOLE HOUSE",
+        promptReverseMc: "What residential or vernacular house type is this building?",
+        promptClueMc: "Which residential house type matches this description?",
+        isWholeBuilding: true,
+        wholeBadge: "🏠 Whole House Type",
+        fallbacks: ["arch_style", "commercial_type"]
+      },
+      commercial_type: {
+        kicker: "COMMERCIAL MASSING • WHOLE BUILDING",
+        promptReverseMc: "What commercial building massing type is shown?",
+        promptClueMc: "Which commercial building massing type matches this description?",
+        isWholeBuilding: true,
+        wholeBadge: "🏢 Whole Building Type",
+        fallbacks: ["monument_typology", "arch_style"]
+      },
+      monument_typology: {
+        kicker: "MONUMENT, TOWER & GATEWAY TYPOLOGY",
+        promptReverseMc: "What sacred, civic, or defensive structure is highlighted (?)",
+        promptClueMc: "Which sacred, civic, or defensive structure matches this description?",
+        isWholeBuilding: false,
+        fallbacks: ["plan_classification", "fortification_defense"]
+      },
+      plan_classification: {
+        kicker: "TEMPLE & BASILICA FLOOR-PLAN • WHOLE PLAN",
+        promptReverseMc: "What temple or basilica floor-plan type is shown?",
+        promptClueMc: "Which temple or basilica floor-plan type matches this description?",
+        isWholeBuilding: true,
+        wholeBadge: "📐 Whole Floor-Plan Type",
+        fallbacks: ["spatial_zone", "classical_order"]
+      },
+      spatial_zone: {
+        kicker: "FLOOR-PLAN CHAMBER & COURT ANATOMY",
+        promptReverseMc: "What floor-plan chamber, aisle, or courtyard space is highlighted (?)",
+        promptClueMc: "Which floor-plan chamber, aisle, or courtyard matches this description?",
+        isWholeBuilding: false,
+        fallbacks: ["plan_classification", "portal_porch_entry"]
+      },
+      roof_shape: {
+        kicker: "ROOF SHAPE & GABLE GEOMETRY",
+        promptReverseMc: "What overall roof shape or gable profile is highlighted (?)",
+        promptClueMc: "Which overall roof shape or gable profile matches this description?",
+        isWholeBuilding: false,
+        fallbacks: ["rooftop_feature", "roof_eave"]
+      },
+      rooftop_feature: {
+        kicker: "DORMER & ROOFTOP CROWN ELEMENT",
+        promptReverseMc: "What dormer, turret, or rooftop crowning feature is highlighted (?)",
+        promptClueMc: "Which dormer, turret, or rooftop crowning feature matches this description?",
+        isWholeBuilding: false,
+        fallbacks: ["roof_shape", "roof_eave"]
+      },
+      roof_eave: {
+        kicker: "ROOF EAVE & DECKING ANATOMY",
+        promptReverseMc: "What roof-edge, eave, or decking component is highlighted (?)",
+        promptClueMc: "Which roof-edge, eave, or decking component matches this description?",
+        isWholeBuilding: false,
+        fallbacks: ["timber_truss_framing", "roof_shape"]
+      },
+      timber_truss_framing: {
+        kicker: "ROOF TRUSS & TIMBER FRAMING",
+        promptReverseMc: "What roof truss, timber joint, or wood framing system is highlighted (?)",
+        promptClueMc: "Which roof truss, timber joint, or framing system matches this description?",
+        isWholeBuilding: false,
+        fallbacks: ["roof_eave", "arch_vault_dome"]
+      },
+      arch_vault_dome: {
+        kicker: "ARCH, VAULT & DOME ANATOMY",
+        promptReverseMc: "What arch, vault, or dome element is highlighted (?)",
+        promptClueMc: "Which arch, vault, or dome element matches this description?",
+        isWholeBuilding: false,
+        fallbacks: ["ceiling_profile", "timber_truss_framing"]
+      },
+      pediment_type: {
+        kicker: "PEDIMENT & GABLE ORNAMENT",
+        promptReverseMc: "What pediment shape or gable ornament is highlighted (?)",
+        promptClueMc: "Which pediment shape or gable ornament matches this description?",
+        isWholeBuilding: false,
+        fallbacks: ["classical_order", "ornament_molding"]
+      },
+      classical_order: {
+        kicker: "CLASSICAL ORDER, COLUMN & ENTABLATURE",
+        promptReverseMc: "What column, pier, capital, or entablature part is highlighted (?)",
+        promptClueMc: "Which column, pier, capital, or entablature part matches this description?",
+        isWholeBuilding: false,
+        fallbacks: ["pediment_type", "ornament_molding"]
+      },
+      window_door_type: {
+        kicker: "WINDOW & DOOR TYPOLOGY",
+        promptReverseMc: "What window, door, or gallery type is highlighted (?)",
+        promptClueMc: "Which window, door, or gallery type matches this description?",
+        isWholeBuilding: false,
+        fallbacks: ["fenestration_component", "portal_porch_entry"]
+      },
+      fenestration_component: {
+        kicker: "WINDOW, DOOR & CURTAIN-WALL PART",
+        promptReverseMc: "What window, door, or facade framing component is highlighted (?)",
+        promptClueMc: "Which window, door, or facade framing component matches this description?",
+        isWholeBuilding: false,
+        fallbacks: ["window_door_type", "portal_porch_entry"]
+      },
+      portal_porch_entry: {
+        kicker: "PORTAL, PORCH & BALCONY ANATOMY",
+        promptReverseMc: "What portal, porch, or balcony feature is highlighted (?)",
+        promptClueMc: "Which portal, porch, or balcony feature matches this description?",
+        isWholeBuilding: false,
+        fallbacks: ["window_door_type", "classical_order"]
+      },
+      masonry_stonework: {
+        kicker: "MASONRY BOND & STONEWORK DETAIL",
+        promptReverseMc: "What brick bond, course orientation, or stone dressing is highlighted (?)",
+        promptClueMc: "Which brick bond, course orientation, or stone dressing matches this description?",
+        isWholeBuilding: false,
+        fallbacks: ["chimney_hearth_heating", "fortification_defense"]
+      },
+      chimney_hearth_heating: {
+        kicker: "CHIMNEY, HEARTH & HEATING ANATOMY",
+        promptReverseMc: "What chimney, hearth, or underfloor heating element is highlighted (?)",
+        promptClueMc: "Which chimney, hearth, or heating element matches this description?",
+        isWholeBuilding: false,
+        fallbacks: ["masonry_stonework", "stair_millwork"]
+      },
+      ceiling_profile: {
+        kicker: "INTERIOR CEILING PROFILE",
+        promptReverseMc: "What interior ceiling profile is highlighted (?)",
+        promptClueMc: "Which interior ceiling profile matches this description?",
+        isWholeBuilding: false,
+        fallbacks: ["stair_millwork", "arch_vault_dome"]
+      },
+      stair_millwork: {
+        kicker: "STAIRCASE, BALUSTRADE & MILLWORK",
+        promptReverseMc: "What staircase, balustrade, or wall-paneling part is highlighted (?)",
+        promptClueMc: "Which staircase, balustrade, or wall-paneling part matches this description?",
+        isWholeBuilding: false,
+        fallbacks: ["ceiling_profile", "ornament_molding"]
+      },
+      ornament_molding: {
+        kicker: "CARVED ORNAMENT & MOLDING MOTIF",
+        promptReverseMc: "What carved ornament, molding profile, or surface motif is highlighted (?)",
+        promptClueMc: "Which carved ornament, molding profile, or surface motif matches this description?",
+        isWholeBuilding: false,
+        fallbacks: ["pediment_type", "classical_order"]
+      },
+      fortification_defense: {
+        kicker: "MEDIEVAL CASTLE & FORTIFICATION",
+        promptReverseMc: "What medieval castle defensive feature is highlighted (?)",
+        promptClueMc: "Which medieval castle defensive feature matches this description?",
+        isWholeBuilding: false,
+        fallbacks: ["monument_typology", "masonry_stonework"]
       }
+    };
+
+    const PART_QUESTION_TYPES = {
+      style_georgian_federal: "arch_style", style_greek_revival: "arch_style", style_gothic_revival: "arch_style",
+      style_italianate: "arch_style", style_second_empire: "arch_style", style_queen_anne: "arch_style",
+      style_richardsonian_romanesque: "arch_style", style_beaux_arts: "arch_style", style_tudor_revival: "arch_style",
+      style_spanish_mission_revival: "arch_style", style_prairie_school: "arch_style", style_art_deco: "arch_style",
+      style_streamline_moderne: "arch_style", style_international: "arch_style", style_brutalism: "arch_style",
+      sp3_stick_style: "arch_style", sp3_shingle_style: "arch_style", sp3_chateauesque: "arch_style",
+      sp3_egyptian_revival: "arch_style", sp3_new_formalism: "arch_style", sp3_googie: "arch_style",
+      sp3_postmodernism: "arch_style", sp3_high_tech_diagrid: "arch_style", sp3_deconstructivism: "arch_style",
+
+      bungalow_type: "house_type", cottage_type: "house_type", foursquare_type: "house_type",
+      vern_shotgun_camelback: "house_type", vern_saltbox: "house_type", vern_brownstone_rowhouse: "house_type",
+      vern_ranch: "house_type", sp3_dogtrot_ihouse: "house_type", sp3_monterey_splitlevel_aframe: "house_type",
+
+      type_two_part_commercial: "commercial_type", type_one_part_commercial: "commercial_type",
+      type_stacked_vertical_block: "commercial_type", type_enframed_window_wall: "commercial_type",
+
+      type_rotunda_tholos: "monument_typology", type_campanile: "monument_typology", isl_minaret: "monument_typology",
+      ea_pagoda_sorin: "monument_typology", ea_torii_gate: "monument_typology", ea_paifang_archway: "monument_typology",
+      sam_shikhara_amalaka: "monument_typology", sam_gopuram_vimana: "monument_typology", sam_buddhist_stupa: "monument_typology",
+      sam_chhatri_pavilion: "monument_typology", sam_torana_gateway: "monument_typology", sam_talud_tablero: "monument_typology",
+      ctc_triumphal_arch: "monument_typology", cf_keep_donjon: "monument_typology", cf_angled_bastion: "monument_typology",
+
+      ctc_in_antis_prostyle: "plan_classification", ctc_amphiprostyle: "plan_classification",
+      ctc_peripteral_dipteral: "plan_classification", ctc_pseudoperipteral: "plan_classification",
+      type_basilica_plan: "plan_classification",
+
+      ctc_pronaos_naos_opisthodomos: "spatial_zone", ctc_atrium_impluvium: "spatial_zone",
+      ctc_peristyle_court: "spatial_zone", isl_sahn: "spatial_zone", type_semicircular_apse: "spatial_zone",
+      slp_narthex: "spatial_zone", slp_nave_aisles: "spatial_zone", slp_transept_crossing: "spatial_zone",
+      slp_choir_chancel: "spatial_zone", slp_apse: "spatial_zone", slp_ambulatory: "spatial_zone",
+      slp_chevet_radiating_chapels: "spatial_zone", slp_crypt_undercroft: "spatial_zone",
+      ea_engawa_veranda: "spatial_zone", ea_shoji_tokonoma: "spatial_zone",
+
+      mansard_roof: "roof_shape", gambrel_roof: "roof_shape", jerkinhead_roof: "roof_shape",
+      ea_irimoya_roof: "roof_shape", ea_karahafu_gable: "roof_shape", sp3_hyperbolic_paraboloid: "roof_shape",
+
+      pedimented_dormer: "rooftop_feature", shed_dormer: "rooftop_feature", eyebrow_dormer: "rooftop_feature",
+      hipped_dormer: "rooftop_feature", cupola_lantern: "rooftop_feature", italianate_cupola_belvedere: "rooftop_feature",
+      sam_roof_comb: "rooftop_feature", goth_pinnacle: "rooftop_feature", goth_gargoyle: "rooftop_feature",
+
+      rafter_tails: "roof_eave", rc_rafter_sheathing_shingles: "roof_eave",
+      rc_eave_soffit_fascia_gutter: "roof_eave", rc_rake_ridge: "roof_eave",
+      ea_swept_eaves_flying_rafters: "roof_eave",
+
+      king_post: "timber_truss_framing", tie_beam_rafters: "timber_truss_framing",
+      purlins_common_rafters: "timber_truss_framing", rc_roof_truss: "timber_truss_framing",
+      tv_hammerbeam_truss: "timber_truss_framing", tv_queen_post_truss: "timber_truss_framing",
+      tv_scissors_truss: "timber_truss_framing", ea_dougong: "timber_truss_framing",
+      ctf_timber_bent: "timber_truss_framing", ctf_jettying: "timber_truss_framing",
+      ctf_summer_beam_girt: "timber_truss_framing", ctf_knee_brace: "timber_truss_framing",
+      ctf_mortise_tenon_treenail: "timber_truss_framing", ctf_balloon_framing: "timber_truss_framing",
+      ctf_platform_framing: "timber_truss_framing",
+
+      arch_keystone: "arch_vault_dome", voussoirs: "arch_vault_dome", arch_spandrel: "arch_vault_dome",
+      impost: "arch_vault_dome", corbel_brackets: "arch_vault_dome", dome_oculus: "arch_vault_dome",
+      pendentive: "arch_vault_dome", squinch: "arch_vault_dome", ribbed_groin_vault: "arch_vault_dome",
+      flying_buttress: "arch_vault_dome", goth_ogee_arch: "arch_vault_dome", rc_guastavino_vault: "arch_vault_dome",
+      isl_muqarnas: "arch_vault_dome", isl_horseshoe_multifoil_arch: "arch_vault_dome",
+      tv_barrel_vault: "arch_vault_dome", tv_fan_vault: "arch_vault_dome",
+      tv_transverse_arch_ribs: "arch_vault_dome", tv_quadripartite_vault: "arch_vault_dome",
+      tv_sexpartite_vault: "arch_vault_dome", sam_corbeled_maya_arch: "arch_vault_dome",
+
+      pediment: "pediment_type", pe_broken_pediment: "pediment_type",
+      pe_swans_neck_pediment: "pediment_type", pe_segmental_pediment: "pediment_type",
+      pe_acroterion: "pediment_type", ro_acroterion_palmette: "pediment_type",
+
+      cornice: "classical_order", architrave: "classical_order", corinthian_capital: "classical_order",
+      engaged_column: "classical_order", doric_frieze_triglyph: "classical_order", doric_capital: "classical_order",
+      ionic_volutes: "classical_order", ionic_attic_base: "classical_order",
+      corinthian_order_cap: "classical_order", wall_engaged_col: "classical_order",
+      wall_pilaster: "classical_order", fl_colonnade: "classical_order",
+      fl_plinth_pedestal: "classical_order", fl_caryatid: "classical_order",
+      pe_tuscan_capital: "classical_order", pe_composite_capital: "classical_order",
+      pe_entasis: "classical_order", ctc_crepidoma_stylobate: "classical_order",
+      battered_pier: "classical_order",
+
+      oriel_window: "window_door_type", palladian_window: "window_door_type",
+      double_hung_sash: "window_door_type", goth_clerestory: "window_door_type",
+      goth_triforium: "window_door_type", goth_rose_window: "window_door_type",
+      goth_lancet_window: "window_door_type", rc_oculus: "window_door_type",
+      rc_bay_window: "window_door_type", wp_casement_window: "window_door_type",
+      wp_awning_window: "window_door_type", wp_hopper_window: "window_door_type",
+      wp_jalousie_window: "window_door_type", wp_diocletian_window: "window_door_type",
+      wp_bow_window: "window_door_type", wp_canted_bay_window: "window_door_type",
+      wp_dutch_door: "window_door_type", wp_french_doors: "window_door_type",
+      sam_jali_screen: "window_door_type",
+
+      mullion: "fenestration_component", transom: "fenestration_component",
+      spandrel_panel: "fenestration_component", vision_glass: "fenestration_component",
+      slab_anchor: "fenestration_component", concrete_slab: "fenestration_component",
+      window_mullion: "fenestration_component", window_muntins: "fenestration_component",
+      meeting_rail: "fenestration_component", sill_and_apron: "fenestration_component",
+      elliptical_fanlight: "fenestration_component", door_sidelights: "fenestration_component",
+      stile_rail_door: "fenestration_component", goth_tracery: "fenestration_component",
+      wp_crossette_architrave: "fenestration_component",
+
+      cottage_arch_entry: "portal_porch_entry", type_recessed_loggia: "portal_porch_entry",
+      type_projecting_portico: "portal_porch_entry", isl_iwan: "portal_porch_entry",
+      pe_porte_cochere: "portal_porch_entry", pe_juliet_balcony: "portal_porch_entry",
+      wp_portal_archivolts: "portal_porch_entry", wp_portal_tympanum_lintel: "portal_porch_entry",
+      wp_portal_trumeau_pier: "portal_porch_entry", wp_portal_jamb_figures: "portal_porch_entry",
+
+      masonry_section: "masonry_stonework", belt_course: "masonry_stonework",
+      quoins: "masonry_stonework", fl_corner_quoin: "masonry_stonework",
+      isl_arcade_ablaq: "masonry_stonework", mb_flemish_bond: "masonry_stonework",
+      mb_english_bond: "masonry_stonework", mb_common_running_bond: "masonry_stonework",
+      mb_header_stretcher: "masonry_stonework", mb_soldier_course: "masonry_stonework",
+      mb_rowlock_course: "masonry_stonework", mb_rusticated_ashlar: "masonry_stonework",
+      mb_vermiculated_stone: "masonry_stonework", mb_water_table: "masonry_stonework",
+
+      int_inglenook_chimneypiece: "chimney_hearth_heating", ctc_thermae_hypocaust: "chimney_hearth_heating",
+      ctf_chimney_pots_cap: "chimney_hearth_heating", ctf_chimney_cricket: "chimney_hearth_heating",
+      ctf_stack_flue_wythe: "chimney_hearth_heating",
+
+      rc_coffered_ceiling: "ceiling_profile", rc_tray_ceiling: "ceiling_profile",
+      rc_vaulted_cathedral_ceiling: "ceiling_profile", int_coffered_ceiling: "ceiling_profile",
+
+      int_wainscoting_dado: "stair_millwork", int_newel_balusters: "stair_millwork",
+      int_open_stringer_stair: "stair_millwork", fl_dado_chair_rail: "stair_millwork",
+      fl_turned_baluster: "stair_millwork", slp_rood_screen: "stair_millwork",
+
+      swag: "ornament_molding", goth_finial: "ornament_molding", goth_crocket: "ornament_molding",
+      fl_cartouche: "ornament_molding", fl_rosette: "ornament_molding",
+      fl_molding_profiles: "ornament_molding", fl_shell_niche: "ornament_molding",
+      isl_geometric_pattern: "ornament_molding", isl_arabesque: "ornament_molding",
+      isl_calligraphy: "ornament_molding", ro_egg_and_dart: "ornament_molding",
+      ro_bead_and_reel: "ornament_molding", ro_greek_key_meander: "ornament_molding",
+      ro_guilloche: "ornament_molding", ro_rosette_guilloche: "ornament_molding",
+      ro_anthemion_palmette: "ornament_molding", ro_vitruvian_scroll: "ornament_molding",
+
+      cf_merlon: "fortification_defense", cf_crenel: "fortification_defense",
+      cf_machicolation: "fortification_defense", cf_bartizan: "fortification_defense",
+      cf_arrow_loop: "fortification_defense", cf_barbican_drawbridge: "fortification_defense",
+      cf_portcullis_murder_holes: "fortification_defense", cf_curtain_wall_allure: "fortification_defense"
+    };
+
+    const SYNONYM_EXCLUSION_GROUPS = [
+      ["corinthian_capital", "corinthian_order_cap"],
+      ["engaged_column", "wall_engaged_col"],
+      ["quoins", "fl_corner_quoin"],
+      ["cupola_lantern", "italianate_cupola_belvedere"],
+      ["mullion", "window_mullion"],
+      ["dome_oculus", "rc_oculus"],
+      ["type_semicircular_apse", "slp_apse"],
+      ["int_coffered_ceiling", "rc_coffered_ceiling"],
+      ["int_wainscoting_dado", "fl_dado_chair_rail"],
+      ["int_newel_balusters", "fl_turned_baluster"],
+      ["rc_bay_window", "wp_canted_bay_window"],
+      ["pe_acroterion", "ro_acroterion_palmette"]
+    ];
+
+    function arePartIdsSynonymous(idA, idB) {
+      if (idA === idB) return true;
+      for (let i = 0; i < SYNONYM_EXCLUSION_GROUPS.length; i++) {
+        const grp = SYNONYM_EXCLUSION_GROUPS[i];
+        if (grp.indexOf(idA) !== -1 && grp.indexOf(idB) !== -1) return true;
+      }
+      return false;
+    }
+
+    function getQuestionMetaForPart(part) {
+      const qType = PART_QUESTION_TYPES[part.id] || "arch_vault_dome";
+      return QUESTION_TYPE_META[qType] || QUESTION_TYPE_META.arch_vault_dome;
+    }
+
+    function getMultipleChoiceOptions(q) {
+      const targetType = PART_QUESTION_TYPES[q.targetId] || "arch_vault_dome";
+      const meta = QUESTION_TYPE_META[targetType] || QUESTION_TYPE_META.arch_vault_dome;
+      const plate = PLATE_CATALOG[q.plateKey];
+
+      // 1. Prefer same-plate items of the exact same questionType
+      const samePlateSameType = plate.parts
+        .filter(p => !arePartIdsSynonymous(p.id, q.targetId) && PART_QUESTION_TYPES[p.id] === targetType)
+        .map(p => p.name);
+
+      // 2. Then other plates of the exact same questionType
+      const crossPlateSameType = BASE_QUIZ_QUESTIONS
+        .filter(item => item.plateKey !== q.plateKey && !arePartIdsSynonymous(item.targetId, q.targetId) && PART_QUESTION_TYPES[item.targetId] === targetType)
+        .map(item => item.term);
+
+      // 3. Fallback to closely related questionTypes if needed (e.g., ceiling_profile)
+      const fallbackTypes = meta.fallbacks || [];
+      const fallbackPool = BASE_QUIZ_QUESTIONS
+        .filter(item => !arePartIdsSynonymous(item.targetId, q.targetId) && fallbackTypes.indexOf(PART_QUESTION_TYPES[item.targetId]) !== -1)
+        .map(item => item.term);
+
+      const distractors = [];
+      const usedNames = new Set([q.term]);
+      let seed = (q.uid.split("").reduce((acc, ch) => (acc * 31 + ch.charCodeAt(0)) % 1000003, 0) + sessionQuizSalt) % 1000003;
+
+      const pickFromPool = (arr) => {
+        const pool = arr.filter(name => !usedNames.has(name));
+        while (distractors.length < 3 && pool.length > 0) {
+          const idx = seed % pool.length;
+          const chosen = pool.splice(idx, 1)[0];
+          if (!usedNames.has(chosen)) {
+            usedNames.add(chosen);
+            distractors.push(chosen);
+          }
+          seed = (seed * 37 + 19) % 1000003;
+        }
+      };
+
+      pickFromPool(samePlateSameType);
+      if (distractors.length < 3) pickFromPool(crossPlateSameType);
+      if (distractors.length < 3) pickFromPool(fallbackPool);
+
       const choices = [q.term, ...distractors];
       for (let i = choices.length - 1; i > 0; i--) {
         const j = (seed + i * 29) % (i + 1);
@@ -5871,7 +6257,7 @@
 
     let masteredSet = loadMasteredSet();
 
-    const SPECIMEN_CROPS = {"portico__pediment": [15.0, 1.5, 63.0, 49.5], "portico__cornice": [4.0, 10.0, 52.0, 58.0], "portico__swag": [21.0, 19.0, 69.0, 67.0], "portico__architrave": [10.0, 28.0, 58.0, 76.0], "portico__corinthian_capital": [39.0, 40.0, 87.0, 88.0], "portico__engaged_column": [38.0, 50.5, 86.0, 98.5], "portico__masonry_section": [50.5, 36.0, 98.5, 84.0], "arches__oriel_window": [14.0, 4.0, 86.0, 49.0], "arches__corbel_brackets": [14.0, 4.0, 86.0, 49.0], "arches__belt_course": [14.0, 4.0, 86.0, 49.0], "arches__palladian_window": [14.0, 4.0, 86.0, 50.0], "arches__arch_keystone": [16.0, 48.0, 61.0, 86.0], "arches__voussoirs": [16.0, 48.0, 61.0, 86.0], "arches__arch_spandrel": [16.0, 48.0, 61.0, 86.0], "arches__impost": [16.0, 48.0, 61.0, 86.0], "arches__quoins": [54.0, 48.0, 96.0, 96.0], "roofs__mansard_roof": [3.0, 3.0, 49.0, 49.0], "roofs__pedimented_dormer": [3.0, 3.0, 49.0, 49.0], "roofs__gambrel_roof": [51.0, 3.0, 97.0, 49.0], "roofs__shed_dormer": [51.0, 3.0, 97.0, 49.0], "roofs__jerkinhead_roof": [3.0, 51.0, 49.0, 97.0], "roofs__rafter_tails": [3.0, 51.0, 49.0, 97.0], "roofs__cupola_lantern": [51.0, 51.0, 97.0, 97.0], "roofs__eyebrow_dormer": [51.0, 51.0, 97.0, 97.0], "three_houses__bungalow_type": [2.0, 18.0, 34.5, 76.0], "three_houses__battered_pier": [2.0, 18.0, 34.5, 76.0], "three_houses__cottage_type": [34.5, 14.0, 66.0, 76.0], "three_houses__cottage_arch_entry": [34.5, 14.0, 66.0, 76.0], "three_houses__foursquare_type": [66.0, 14.0, 98.0, 76.0], "three_houses__hipped_dormer": [66.0, 14.0, 98.0, 76.0], "curtain_wall__mullion": [28.5, 11.0, 78.5, 61.0], "curtain_wall__transom": [38.0, 1.5, 88.0, 51.5], "curtain_wall__spandrel_panel": [19.0, 22.0, 69.0, 72.0], "curtain_wall__vision_glass": [38.0, 33.0, 88.0, 83.0], "curtain_wall__slab_anchor": [6.5, 28.0, 56.5, 78.0], "curtain_wall__concrete_slab": [1.5, 16.0, 51.5, 66.0], "orders__doric_frieze_triglyph": [2.0, 5.0, 28.5, 42.0], "orders__doric_capital": [2.0, 5.0, 28.5, 45.0], "orders__ionic_volutes": [26.5, 6.0, 51.5, 42.0], "orders__ionic_attic_base": [26.5, 55.0, 51.5, 93.0], "orders__corinthian_order_cap": [49.5, 6.0, 74.5, 44.0], "orders__wall_engaged_col": [72.5, 22.0, 98.0, 74.0], "orders__wall_pilaster": [72.5, 22.0, 98.0, 74.0], "fenestration__window_mullion": [3.0, 16.0, 49.0, 86.0], "fenestration__window_muntins": [3.0, 16.0, 49.0, 86.0], "fenestration__double_hung_sash": [3.0, 16.0, 49.0, 86.0], "fenestration__meeting_rail": [3.0, 16.0, 49.0, 86.0], "fenestration__sill_and_apron": [3.0, 16.0, 49.0, 86.0], "fenestration__elliptical_fanlight": [50.0, 12.0, 97.0, 86.0], "fenestration__door_sidelights": [50.0, 12.0, 97.0, 86.0], "fenestration__stile_rail_door": [50.0, 12.0, 97.0, 86.0], "structure__dome_oculus": [3.0, 2.0, 49.0, 48.0], "structure__pendentive": [3.0, 2.0, 49.0, 48.0], "structure__squinch": [50.0, 2.0, 97.0, 48.0], "structure__ribbed_groin_vault": [3.0, 49.0, 50.0, 97.0], "structure__flying_buttress": [3.0, 49.0, 50.0, 97.0], "structure__king_post": [51.0, 49.0, 97.0, 97.0], "structure__tie_beam_rafters": [51.0, 49.0, 97.0, 97.0], "structure__purlins_common_rafters": [51.0, 49.0, 97.0, 97.0], "styles_historic__style_georgian_federal": [2.0, 2.0, 33.0, 33.0], "styles_historic__style_greek_revival": [33.5, 2.0, 66.5, 33.0], "styles_historic__style_gothic_revival": [67.0, 2.0, 98.0, 33.0], "styles_historic__style_italianate": [2.0, 35.0, 33.0, 67.0], "styles_historic__style_second_empire": [33.5, 34.0, 66.5, 67.0], "styles_historic__style_queen_anne": [67.0, 34.0, 98.0, 67.0], "styles_historic__style_richardsonian_romanesque": [28.0, 67.5, 72.0, 98.0], "styles_historic__italianate_cupola_belvedere": [2.0, 24.0, 33.0, 52.0], "styles_modern__style_beaux_arts": [2.0, 2.0, 33.5, 34.5], "styles_modern__style_tudor_revival": [34.0, 2.0, 66.5, 34.5], "styles_modern__style_spanish_mission_revival": [67.0, 2.0, 98.0, 34.5], "styles_modern__style_prairie_school": [2.0, 35.0, 33.5, 67.0], "styles_modern__style_art_deco": [34.0, 35.0, 66.5, 67.0], "styles_modern__style_streamline_moderne": [67.0, 35.0, 98.0, 67.0], "styles_modern__style_international": [2.0, 67.5, 48.0, 98.0], "styles_modern__style_brutalism": [50.0, 67.5, 98.0, 98.0], "commercial_civic__type_two_part_commercial": [2.0, 2.0, 33.5, 34.5], "commercial_civic__type_one_part_commercial": [34.0, 2.0, 66.5, 34.5], "commercial_civic__type_stacked_vertical_block": [67.0, 2.0, 98.0, 34.5], "commercial_civic__type_enframed_window_wall": [2.0, 35.0, 33.5, 67.5], "commercial_civic__type_basilica_plan": [34.0, 35.0, 66.5, 67.5], "commercial_civic__type_semicircular_apse": [34.0, 35.0, 66.5, 67.5], "commercial_civic__type_rotunda_tholos": [67.0, 35.0, 98.0, 67.5], "commercial_civic__type_campanile": [67.0, 35.0, 99.0, 67.5], "commercial_civic__type_recessed_loggia": [18.0, 68.0, 82.0, 98.0], "commercial_civic__type_projecting_portico": [18.0, 68.0, 82.0, 98.0], "vernacular_interiors__vern_shotgun_camelback": [2.0, 2.0, 33.5, 34.0], "vernacular_interiors__vern_saltbox": [34.0, 2.0, 66.5, 34.0], "vernacular_interiors__vern_brownstone_rowhouse": [67.0, 2.0, 98.0, 34.0], "vernacular_interiors__vern_ranch": [2.0, 34.5, 48.0, 66.5], "vernacular_interiors__int_coffered_ceiling": [50.0, 34.0, 98.0, 66.5], "vernacular_interiors__int_wainscoting_dado": [50.0, 34.5, 98.0, 66.5], "vernacular_interiors__int_newel_balusters": [2.0, 67.0, 49.0, 98.0], "vernacular_interiors__int_open_stringer_stair": [2.0, 67.0, 49.0, 98.0], "vernacular_interiors__int_inglenook_chimneypiece": [50.0, 67.0, 98.0, 98.0], "gothic_tracery__goth_clerestory": [1.5, 1.5, 37.5, 45.5], "gothic_tracery__goth_triforium": [1.5, 10.0, 37.5, 54.0], "gothic_tracery__goth_gargoyle": [18.0, 6.0, 40.0, 42.0], "gothic_tracery__goth_rose_window": [35.0, 2.0, 65.0, 35.0], "gothic_tracery__goth_lancet_window": [55.0, 1.5, 93.0, 43.5], "gothic_tracery__goth_tracery": [60.5, 1.5, 98.5, 43.5], "gothic_tracery__goth_pinnacle": [34.0, 32.0, 66.0, 74.0], "gothic_tracery__goth_ogee_arch": [1.5, 43.0, 37.5, 87.0], "gothic_tracery__goth_finial": [60.5, 24.5, 98.5, 66.5], "gothic_tracery__goth_crocket": [57.0, 44.5, 95.0, 86.5], "roof_framing_ceilings__rc_guastavino_vault": [1.5, 1.5, 33.5, 33.5], "roof_framing_ceilings__rc_roof_truss": [33.8, 1.5, 66.2, 33.5], "roof_framing_ceilings__rc_rafter_sheathing_shingles": [66.5, 1.5, 98.5, 33.5], "roof_framing_ceilings__rc_eave_soffit_fascia_gutter": [1.5, 33.8, 33.5, 66.2], "roof_framing_ceilings__rc_rake_ridge": [33.8, 33.8, 66.2, 66.2], "roof_framing_ceilings__rc_coffered_ceiling": [66.5, 33.8, 98.5, 66.2], "roof_framing_ceilings__rc_tray_ceiling": [1.5, 66.5, 33.5, 98.5], "roof_framing_ceilings__rc_vaulted_cathedral_ceiling": [33.8, 66.5, 66.2, 98.5], "roof_framing_ceilings__rc_oculus": [66.5, 66.3, 98.5, 98.5], "roof_framing_ceilings__rc_bay_window": [66.5, 66.5, 98.5, 98.5], "flourishes_masonry__fl_colonnade": [1.5, 1.5, 33.5, 33.5], "flourishes_masonry__fl_corner_quoin": [33.8, 1.5, 66.2, 33.5], "flourishes_masonry__fl_cartouche": [66.5, 1.5, 98.5, 33.5], "flourishes_masonry__fl_rosette": [1.5, 33.8, 33.5, 66.2], "flourishes_masonry__fl_dado_chair_rail": [33.8, 33.8, 66.2, 66.2], "flourishes_masonry__fl_molding_profiles": [66.5, 33.8, 98.5, 66.2], "flourishes_masonry__fl_plinth_pedestal": [1.5, 66.5, 33.5, 98.5], "flourishes_masonry__fl_turned_baluster": [1.5, 66.5, 33.5, 98.5], "flourishes_masonry__fl_caryatid": [33.8, 66.5, 66.2, 98.5], "flourishes_masonry__fl_shell_niche": [66.5, 66.5, 98.5, 98.5], "islamic_courtyard__isl_iwan": [1.5, 1.5, 33.5, 33.5], "islamic_courtyard__isl_muqarnas": [33.8, 1.5, 66.2, 33.5], "islamic_courtyard__isl_minaret": [66.5, 1.5, 98.5, 33.5], "islamic_courtyard__isl_sahn": [1.5, 33.8, 33.5, 66.2], "islamic_courtyard__isl_arcade_ablaq": [33.8, 33.8, 66.2, 66.2], "islamic_courtyard__isl_horseshoe_multifoil_arch": [66.5, 33.8, 98.5, 66.2], "islamic_courtyard__isl_geometric_pattern": [1.5, 66.5, 33.5, 98.5], "islamic_courtyard__isl_arabesque": [33.8, 66.5, 66.2, 98.5], "islamic_courtyard__isl_calligraphy": [66.5, 66.5, 98.5, 98.5], "masonry_bonds__mb_flemish_bond": [1.5, 1.5, 33.5, 33.5], "masonry_bonds__mb_english_bond": [33.8, 1.5, 66.2, 33.5], "masonry_bonds__mb_common_running_bond": [66.5, 1.5, 98.5, 33.5], "masonry_bonds__mb_header_stretcher": [1.5, 33.8, 33.5, 66.2], "masonry_bonds__mb_soldier_course": [33.8, 33.8, 66.2, 66.2], "masonry_bonds__mb_rowlock_course": [66.5, 33.8, 98.5, 66.2], "masonry_bonds__mb_rusticated_ashlar": [1.5, 66.5, 33.5, 98.5], "masonry_bonds__mb_vermiculated_stone": [33.8, 66.5, 66.2, 98.5], "masonry_bonds__mb_water_table": [66.5, 66.5, 98.5, 98.5], "pediments_entry__pe_broken_pediment": [1.5, 1.5, 33.5, 33.5], "pediments_entry__pe_swans_neck_pediment": [33.8, 1.5, 66.2, 33.5], "pediments_entry__pe_segmental_pediment": [66.5, 1.5, 98.5, 33.5], "pediments_entry__pe_porte_cochere": [1.5, 33.8, 33.5, 66.2], "pediments_entry__pe_juliet_balcony": [33.8, 33.8, 66.2, 66.2], "pediments_entry__pe_tuscan_capital": [66.5, 33.8, 98.5, 66.2], "pediments_entry__pe_composite_capital": [1.5, 66.5, 33.5, 98.5], "pediments_entry__pe_entasis": [33.8, 66.5, 66.2, 98.5], "pediments_entry__pe_acroterion": [66.5, 66.5, 98.5, 98.5], "windows_portals__wp_casement_window": [2.0, 2.0, 33.0, 33.0], "windows_portals__wp_awning_window": [33.5, 2.0, 66.5, 33.0], "windows_portals__wp_hopper_window": [33.5, 2.0, 66.5, 33.0], "windows_portals__wp_jalousie_window": [67.0, 2.0, 98.0, 33.0], "windows_portals__wp_diocletian_window": [2.0, 34.0, 33.0, 63.0], "windows_portals__wp_bow_window": [33.5, 34.0, 66.5, 63.0], "windows_portals__wp_canted_bay_window": [33.5, 34.0, 66.5, 63.0], "windows_portals__wp_dutch_door": [67.0, 34.0, 82.5, 63.0], "windows_portals__wp_french_doors": [82.5, 34.0, 98.0, 63.0], "windows_portals__wp_crossette_architrave": [2.0, 64.0, 33.0, 98.0], "windows_portals__wp_portal_archivolts": [33.5, 64.0, 60.0, 98.0], "windows_portals__wp_portal_tympanum_lintel": [60.5, 63.0, 98.0, 98.0], "windows_portals__wp_portal_trumeau_pier": [60.5, 63.0, 98.0, 98.0], "windows_portals__wp_portal_jamb_figures": [60.5, 63.0, 98.0, 98.0], "running_ornament__ro_egg_and_dart": [2.0, 3.0, 34.5, 35.5], "running_ornament__ro_bead_and_reel": [35.0, 3.0, 66.5, 35.5], "running_ornament__ro_greek_key_meander": [67.0, 3.0, 98.0, 35.5], "running_ornament__ro_guilloche": [2.0, 36.0, 49.5, 64.5], "running_ornament__ro_rosette_guilloche": [50.5, 36.0, 98.0, 64.5], "running_ornament__ro_anthemion_palmette": [2.0, 65.0, 51.5, 97.5], "running_ornament__ro_acroterion_palmette": [52.0, 64.0, 98.0, 97.5], "running_ornament__ro_vitruvian_scroll": [52.0, 65.0, 98.0, 97.5], "trusses_vaults__tv_hammerbeam_truss": [1.5, 3.0, 32.5, 35.5], "trusses_vaults__tv_queen_post_truss": [33.0, 3.0, 65.5, 35.5], "trusses_vaults__tv_scissors_truss": [66.0, 3.0, 98.5, 35.5], "trusses_vaults__tv_barrel_vault": [1.5, 36.0, 49.0, 64.5], "trusses_vaults__tv_fan_vault": [50.0, 36.0, 98.5, 64.5], "trusses_vaults__tv_transverse_arch_ribs": [1.5, 65.0, 48.0, 97.5], "trusses_vaults__tv_quadripartite_vault": [48.5, 65.0, 74.0, 97.5], "trusses_vaults__tv_sexpartite_vault": [74.5, 65.0, 98.5, 97.5], "styles_part3__sp3_stick_style": [2.0, 3.0, 24.8, 34.0], "styles_part3__sp3_shingle_style": [25.2, 3.0, 49.5, 34.0], "styles_part3__sp3_chateauesque": [50.0, 3.0, 73.5, 34.0], "styles_part3__sp3_egyptian_revival": [74.0, 3.0, 98.5, 34.0], "styles_part3__sp3_new_formalism": [1.5, 35.0, 26.2, 64.0], "styles_part3__sp3_googie": [26.4, 35.0, 50.0, 64.0], "styles_part3__sp3_hyperbolic_paraboloid": [50.5, 35.0, 73.5, 64.0], "styles_part3__sp3_postmodernism": [74.0, 35.0, 98.5, 64.0], "styles_part3__sp3_high_tech_diagrid": [1.5, 65.5, 19.5, 97.0], "styles_part3__sp3_deconstructivism": [19.6, 67.5, 42.5, 97.0], "styles_part3__sp3_dogtrot_ihouse": [42.8, 67.5, 62.5, 97.0], "styles_part3__sp3_monterey_splitlevel_aframe": [62.8, 67.5, 98.5, 97.0], "castle_fortifications__cf_merlon": [1.5, 2.0, 33.0, 52.0], "castle_fortifications__cf_crenel": [1.5, 2.0, 33.0, 52.0], "castle_fortifications__cf_machicolation": [1.5, 2.0, 33.0, 52.0], "castle_fortifications__cf_bartizan": [33.5, 2.0, 50.5, 37.0], "castle_fortifications__cf_arrow_loop": [51.0, 2.0, 66.0, 36.0], "castle_fortifications__cf_barbican_drawbridge": [1.5, 50.0, 34.0, 98.0], "castle_fortifications__cf_portcullis_murder_holes": [33.5, 37.5, 60.0, 98.0], "castle_fortifications__cf_keep_donjon": [60.5, 2.0, 98.5, 56.0], "castle_fortifications__cf_curtain_wall_allure": [60.5, 35.0, 98.5, 78.0], "castle_fortifications__cf_angled_bastion": [64.0, 64.0, 98.5, 98.5], "east_asian_architecture__ea_dougong": [2.0, 2.0, 31.0, 55.0], "east_asian_architecture__ea_irimoya_roof": [34.5, 2.0, 63.5, 34.5], "east_asian_architecture__ea_karahafu_gable": [70.5, 2.0, 98.0, 35.0], "east_asian_architecture__ea_swept_eaves_flying_rafters": [30.5, 30.5, 58.0, 64.5], "east_asian_architecture__ea_pagoda_sorin": [56.5, 5.0, 75.5, 52.0], "east_asian_architecture__ea_torii_gate": [75.0, 31.5, 96.0, 64.8], "east_asian_architecture__ea_paifang_archway": [2.0, 56.0, 33.5, 98.0], "east_asian_architecture__ea_engawa_veranda": [34.5, 66.5, 66.5, 99.0], "east_asian_architecture__ea_shoji_tokonoma": [69.5, 65.0, 98.0, 99.0], "south_asian_mesoamerican__sam_shikhara_amalaka": [1.8, 2.0, 33.0, 49.5], "south_asian_mesoamerican__sam_gopuram_vimana": [33.5, 2.0, 66.4, 49.5], "south_asian_mesoamerican__sam_buddhist_stupa": [66.8, 2.0, 98.2, 40.5], "south_asian_mesoamerican__sam_chhatri_pavilion": [1.8, 50.2, 23.8, 98.0], "south_asian_mesoamerican__sam_jali_screen": [24.2, 50.2, 57.5, 68.0], "south_asian_mesoamerican__sam_torana_gateway": [74.8, 40.5, 98.2, 66.8], "south_asian_mesoamerican__sam_talud_tablero": [24.2, 68.0, 48.2, 98.0], "south_asian_mesoamerican__sam_roof_comb": [48.5, 50.2, 76.8, 98.0], "south_asian_mesoamerican__sam_corbeled_maya_arch": [77.0, 67.2, 98.2, 98.0], "classical_temples_civic__ctc_in_antis_prostyle": [2.0, 4.0, 20.5, 42.0], "classical_temples_civic__ctc_amphiprostyle": [20.0, 4.0, 32.0, 42.0], "classical_temples_civic__ctc_peripteral_dipteral": [31.5, 4.0, 53.0, 42.0], "classical_temples_civic__ctc_pseudoperipteral": [53.5, 4.0, 71.5, 46.5], "classical_temples_civic__ctc_crepidoma_stylobate": [71.2, 4.0, 98.0, 48.5], "classical_temples_civic__ctc_pronaos_naos_opisthodomos": [71.2, 4.0, 98.0, 48.5], "classical_temples_civic__ctc_triumphal_arch": [2.0, 47.5, 22.5, 96.5], "classical_temples_civic__ctc_atrium_impluvium": [23.0, 51.0, 45.5, 96.5], "classical_temples_civic__ctc_peristyle_court": [46.0, 51.0, 74.0, 96.5], "classical_temples_civic__ctc_thermae_hypocaust": [74.5, 51.0, 98.0, 96.5], "sacred_liturgical_plan__slp_narthex": [1.5, 50.0, 26.0, 96.0], "sacred_liturgical_plan__slp_nave_aisles": [10.0, 32.0, 46.0, 94.0], "sacred_liturgical_plan__slp_transept_crossing": [22.0, 4.0, 58.0, 56.0], "sacred_liturgical_plan__slp_rood_screen": [30.0, 32.0, 56.0, 76.0], "sacred_liturgical_plan__slp_choir_chancel": [37.0, 14.0, 66.0, 60.0], "sacred_liturgical_plan__slp_apse": [45.0, 4.0, 74.0, 48.0], "sacred_liturgical_plan__slp_ambulatory": [49.0, 10.0, 75.0, 54.0], "sacred_liturgical_plan__slp_chevet_radiating_chapels": [72.0, 4.0, 98.5, 56.0], "sacred_liturgical_plan__slp_crypt_undercroft": [56.5, 52.0, 78.0, 98.0], "chimney_timber_framing__ctf_chimney_pots_cap": [2.0, 3.0, 30.5, 50.0], "chimney_timber_framing__ctf_chimney_cricket": [2.0, 24.0, 30.5, 76.0], "chimney_timber_framing__ctf_stack_flue_wythe": [2.0, 38.0, 30.5, 95.0], "chimney_timber_framing__ctf_timber_bent": [31.0, 5.0, 66.5, 58.0], "chimney_timber_framing__ctf_jettying": [31.0, 35.0, 58.0, 88.0], "chimney_timber_framing__ctf_summer_beam_girt": [35.0, 32.0, 66.5, 80.0], "chimney_timber_framing__ctf_knee_brace": [34.0, 45.0, 66.0, 93.0], "chimney_timber_framing__ctf_mortise_tenon_treenail": [52.0, 64.0, 67.5, 93.0], "chimney_timber_framing__ctf_balloon_framing": [66.8, 22.0, 83.5, 82.0], "chimney_timber_framing__ctf_platform_framing": [82.5, 24.0, 98.5, 86.0]};
+    const SPECIMEN_CROPS = {"portico__pediment": [15.0, 1.5, 63.0, 49.5], "portico__cornice": [4.0, 10.0, 52.0, 58.0], "portico__swag": [21.0, 19.0, 69.0, 67.0], "portico__architrave": [10.0, 28.0, 58.0, 76.0], "portico__corinthian_capital": [39.0, 40.0, 87.0, 88.0], "portico__engaged_column": [38.0, 50.5, 86.0, 98.5], "portico__masonry_section": [50.5, 36.0, 98.5, 84.0], "arches__oriel_window": [14.0, 4.0, 86.0, 49.0], "arches__corbel_brackets": [14.0, 4.0, 86.0, 49.0], "arches__belt_course": [14.0, 4.0, 86.0, 49.0], "arches__palladian_window": [14.0, 4.0, 86.0, 50.0], "arches__arch_keystone": [16.0, 48.0, 61.0, 86.0], "arches__voussoirs": [16.0, 48.0, 61.0, 86.0], "arches__arch_spandrel": [16.0, 48.0, 61.0, 86.0], "arches__impost": [16.0, 48.0, 61.0, 86.0], "arches__quoins": [54.0, 48.0, 96.0, 96.0], "roofs__mansard_roof": [3.0, 3.0, 49.0, 49.0], "roofs__pedimented_dormer": [3.0, 3.0, 49.0, 49.0], "roofs__gambrel_roof": [51.0, 3.0, 97.0, 49.0], "roofs__shed_dormer": [51.0, 3.0, 97.0, 49.0], "roofs__jerkinhead_roof": [3.0, 51.0, 49.0, 97.0], "roofs__rafter_tails": [3.0, 51.0, 49.0, 97.0], "roofs__cupola_lantern": [51.0, 51.0, 97.0, 97.0], "roofs__eyebrow_dormer": [51.0, 51.0, 97.0, 97.0], "three_houses__bungalow_type": [2.0, 18.0, 34.5, 76.0], "three_houses__battered_pier": [2.0, 34.0, 26.0, 76.0], "three_houses__cottage_type": [34.5, 14.0, 66.0, 76.0], "three_houses__cottage_arch_entry": [40.0, 34.0, 65.0, 75.0], "three_houses__foursquare_type": [66.0, 14.0, 98.0, 76.0], "three_houses__hipped_dormer": [67.0, 14.0, 96.0, 52.0], "curtain_wall__mullion": [28.5, 11.0, 78.5, 61.0], "curtain_wall__transom": [38.0, 1.5, 88.0, 51.5], "curtain_wall__spandrel_panel": [19.0, 22.0, 69.0, 72.0], "curtain_wall__vision_glass": [38.0, 33.0, 88.0, 83.0], "curtain_wall__slab_anchor": [6.5, 28.0, 56.5, 78.0], "curtain_wall__concrete_slab": [1.5, 16.0, 51.5, 66.0], "orders__doric_frieze_triglyph": [2.0, 5.0, 28.5, 42.0], "orders__doric_capital": [2.0, 5.0, 28.5, 45.0], "orders__ionic_volutes": [26.5, 6.0, 51.5, 42.0], "orders__ionic_attic_base": [26.5, 55.0, 51.5, 93.0], "orders__corinthian_order_cap": [49.5, 6.0, 74.5, 44.0], "orders__wall_engaged_col": [72.5, 22.0, 98.0, 74.0], "orders__wall_pilaster": [72.5, 22.0, 98.0, 74.0], "fenestration__window_mullion": [3.0, 16.0, 49.0, 86.0], "fenestration__window_muntins": [3.0, 16.0, 49.0, 86.0], "fenestration__double_hung_sash": [3.0, 16.0, 49.0, 86.0], "fenestration__meeting_rail": [3.0, 16.0, 49.0, 86.0], "fenestration__sill_and_apron": [3.0, 16.0, 49.0, 86.0], "fenestration__elliptical_fanlight": [50.0, 12.0, 97.0, 86.0], "fenestration__door_sidelights": [50.0, 12.0, 97.0, 86.0], "fenestration__stile_rail_door": [50.0, 12.0, 97.0, 86.0], "structure__dome_oculus": [3.0, 2.0, 49.0, 48.0], "structure__pendentive": [3.0, 2.0, 49.0, 48.0], "structure__squinch": [50.0, 2.0, 97.0, 48.0], "structure__ribbed_groin_vault": [3.0, 49.0, 50.0, 97.0], "structure__flying_buttress": [3.0, 49.0, 50.0, 97.0], "structure__king_post": [51.0, 49.0, 97.0, 97.0], "structure__tie_beam_rafters": [51.0, 49.0, 97.0, 97.0], "structure__purlins_common_rafters": [51.0, 49.0, 97.0, 97.0], "styles_historic__style_georgian_federal": [2.0, 2.0, 33.0, 33.0], "styles_historic__style_greek_revival": [33.5, 2.0, 66.5, 33.0], "styles_historic__style_gothic_revival": [67.0, 2.0, 98.0, 33.0], "styles_historic__style_italianate": [2.0, 35.0, 33.0, 67.0], "styles_historic__style_second_empire": [33.5, 34.0, 66.5, 67.0], "styles_historic__style_queen_anne": [67.0, 34.0, 98.0, 67.0], "styles_historic__style_richardsonian_romanesque": [28.0, 67.5, 72.0, 98.0], "styles_historic__italianate_cupola_belvedere": [2.0, 24.0, 33.0, 52.0], "styles_modern__style_beaux_arts": [2.0, 2.0, 33.5, 34.5], "styles_modern__style_tudor_revival": [34.0, 2.0, 66.5, 34.5], "styles_modern__style_spanish_mission_revival": [67.0, 2.0, 98.0, 34.5], "styles_modern__style_prairie_school": [2.0, 35.0, 33.5, 67.0], "styles_modern__style_art_deco": [34.0, 35.0, 66.5, 67.0], "styles_modern__style_streamline_moderne": [67.0, 35.0, 98.0, 67.0], "styles_modern__style_international": [2.0, 67.5, 48.0, 98.0], "styles_modern__style_brutalism": [50.0, 67.5, 98.0, 98.0], "commercial_civic__type_two_part_commercial": [2.0, 2.0, 33.5, 34.5], "commercial_civic__type_one_part_commercial": [34.0, 2.0, 66.5, 34.5], "commercial_civic__type_stacked_vertical_block": [67.0, 2.0, 98.0, 34.5], "commercial_civic__type_enframed_window_wall": [2.0, 35.0, 33.5, 67.5], "commercial_civic__type_basilica_plan": [34.0, 35.0, 66.5, 67.5], "commercial_civic__type_semicircular_apse": [34.0, 35.0, 66.5, 67.5], "commercial_civic__type_rotunda_tholos": [67.0, 35.0, 98.0, 67.5], "commercial_civic__type_campanile": [67.0, 35.0, 99.0, 67.5], "commercial_civic__type_recessed_loggia": [18.0, 68.0, 82.0, 98.0], "commercial_civic__type_projecting_portico": [18.0, 68.0, 82.0, 98.0], "vernacular_interiors__vern_shotgun_camelback": [2.0, 2.0, 33.5, 34.0], "vernacular_interiors__vern_saltbox": [34.0, 2.0, 66.5, 34.0], "vernacular_interiors__vern_brownstone_rowhouse": [67.0, 2.0, 98.0, 34.0], "vernacular_interiors__vern_ranch": [2.0, 34.5, 48.0, 66.5], "vernacular_interiors__int_coffered_ceiling": [50.0, 34.0, 98.0, 66.5], "vernacular_interiors__int_wainscoting_dado": [50.0, 34.5, 98.0, 66.5], "vernacular_interiors__int_newel_balusters": [2.0, 67.0, 49.0, 98.0], "vernacular_interiors__int_open_stringer_stair": [2.0, 67.0, 49.0, 98.0], "vernacular_interiors__int_inglenook_chimneypiece": [50.0, 67.0, 98.0, 98.0], "gothic_tracery__goth_clerestory": [1.5, 1.5, 37.5, 45.5], "gothic_tracery__goth_triforium": [1.5, 10.0, 37.5, 54.0], "gothic_tracery__goth_gargoyle": [18.0, 6.0, 40.0, 42.0], "gothic_tracery__goth_rose_window": [35.0, 2.0, 65.0, 35.0], "gothic_tracery__goth_lancet_window": [55.0, 1.5, 93.0, 43.5], "gothic_tracery__goth_tracery": [60.5, 1.5, 98.5, 43.5], "gothic_tracery__goth_pinnacle": [34.0, 32.0, 66.0, 74.0], "gothic_tracery__goth_ogee_arch": [1.5, 43.0, 37.5, 87.0], "gothic_tracery__goth_finial": [60.5, 24.5, 98.5, 66.5], "gothic_tracery__goth_crocket": [57.0, 44.5, 95.0, 86.5], "roof_framing_ceilings__rc_guastavino_vault": [1.5, 1.5, 33.5, 33.5], "roof_framing_ceilings__rc_roof_truss": [33.8, 1.5, 66.2, 33.5], "roof_framing_ceilings__rc_rafter_sheathing_shingles": [66.5, 1.5, 98.5, 33.5], "roof_framing_ceilings__rc_eave_soffit_fascia_gutter": [1.5, 33.8, 33.5, 66.2], "roof_framing_ceilings__rc_rake_ridge": [33.8, 33.8, 66.2, 66.2], "roof_framing_ceilings__rc_coffered_ceiling": [66.5, 33.8, 98.5, 66.2], "roof_framing_ceilings__rc_tray_ceiling": [1.5, 66.5, 33.5, 98.5], "roof_framing_ceilings__rc_vaulted_cathedral_ceiling": [33.8, 66.5, 66.2, 98.5], "roof_framing_ceilings__rc_oculus": [66.5, 66.3, 98.5, 98.5], "roof_framing_ceilings__rc_bay_window": [66.5, 66.5, 98.5, 98.5], "flourishes_masonry__fl_colonnade": [1.5, 1.5, 33.5, 33.5], "flourishes_masonry__fl_corner_quoin": [33.8, 1.5, 66.2, 33.5], "flourishes_masonry__fl_cartouche": [66.5, 1.5, 98.5, 33.5], "flourishes_masonry__fl_rosette": [1.5, 33.8, 33.5, 66.2], "flourishes_masonry__fl_dado_chair_rail": [33.8, 33.8, 66.2, 66.2], "flourishes_masonry__fl_molding_profiles": [66.5, 33.8, 98.5, 66.2], "flourishes_masonry__fl_plinth_pedestal": [1.5, 66.5, 33.5, 98.5], "flourishes_masonry__fl_turned_baluster": [1.5, 66.5, 33.5, 98.5], "flourishes_masonry__fl_caryatid": [33.8, 66.5, 66.2, 98.5], "flourishes_masonry__fl_shell_niche": [66.5, 66.5, 98.5, 98.5], "islamic_courtyard__isl_iwan": [1.5, 1.5, 33.5, 33.5], "islamic_courtyard__isl_muqarnas": [33.8, 1.5, 66.2, 33.5], "islamic_courtyard__isl_minaret": [66.5, 1.5, 98.5, 33.5], "islamic_courtyard__isl_sahn": [1.5, 33.8, 33.5, 66.2], "islamic_courtyard__isl_arcade_ablaq": [33.8, 33.8, 66.2, 66.2], "islamic_courtyard__isl_horseshoe_multifoil_arch": [66.5, 33.8, 98.5, 66.2], "islamic_courtyard__isl_geometric_pattern": [1.5, 66.5, 33.5, 98.5], "islamic_courtyard__isl_arabesque": [33.8, 66.5, 66.2, 98.5], "islamic_courtyard__isl_calligraphy": [66.5, 66.5, 98.5, 98.5], "masonry_bonds__mb_flemish_bond": [1.5, 1.5, 33.5, 33.5], "masonry_bonds__mb_english_bond": [33.8, 1.5, 66.2, 33.5], "masonry_bonds__mb_common_running_bond": [66.5, 1.5, 98.5, 33.5], "masonry_bonds__mb_header_stretcher": [1.5, 33.8, 33.5, 66.2], "masonry_bonds__mb_soldier_course": [33.8, 33.8, 66.2, 66.2], "masonry_bonds__mb_rowlock_course": [66.5, 33.8, 98.5, 66.2], "masonry_bonds__mb_rusticated_ashlar": [1.5, 66.5, 33.5, 98.5], "masonry_bonds__mb_vermiculated_stone": [33.8, 66.5, 66.2, 98.5], "masonry_bonds__mb_water_table": [66.5, 66.5, 98.5, 98.5], "pediments_entry__pe_broken_pediment": [1.5, 1.5, 33.5, 33.5], "pediments_entry__pe_swans_neck_pediment": [33.8, 1.5, 66.2, 33.5], "pediments_entry__pe_segmental_pediment": [66.5, 1.5, 98.5, 33.5], "pediments_entry__pe_porte_cochere": [1.5, 33.8, 33.5, 66.2], "pediments_entry__pe_juliet_balcony": [33.8, 33.8, 66.2, 66.2], "pediments_entry__pe_tuscan_capital": [66.5, 33.8, 98.5, 66.2], "pediments_entry__pe_composite_capital": [1.5, 66.5, 33.5, 98.5], "pediments_entry__pe_entasis": [33.8, 66.5, 66.2, 98.5], "pediments_entry__pe_acroterion": [66.5, 66.5, 98.5, 98.5], "windows_portals__wp_casement_window": [2.0, 2.0, 33.0, 33.0], "windows_portals__wp_awning_window": [33.5, 2.0, 66.5, 33.0], "windows_portals__wp_hopper_window": [33.5, 2.0, 66.5, 33.0], "windows_portals__wp_jalousie_window": [67.0, 2.0, 98.0, 33.0], "windows_portals__wp_diocletian_window": [2.0, 34.0, 33.0, 63.0], "windows_portals__wp_bow_window": [33.5, 34.0, 66.5, 63.0], "windows_portals__wp_canted_bay_window": [33.5, 34.0, 66.5, 63.0], "windows_portals__wp_dutch_door": [67.0, 34.0, 82.5, 63.0], "windows_portals__wp_french_doors": [82.5, 34.0, 98.0, 63.0], "windows_portals__wp_crossette_architrave": [2.0, 64.0, 33.0, 98.0], "windows_portals__wp_portal_archivolts": [33.5, 64.0, 60.0, 98.0], "windows_portals__wp_portal_tympanum_lintel": [60.5, 63.0, 98.0, 98.0], "windows_portals__wp_portal_trumeau_pier": [60.5, 63.0, 98.0, 98.0], "windows_portals__wp_portal_jamb_figures": [60.5, 63.0, 98.0, 98.0], "running_ornament__ro_egg_and_dart": [2.0, 3.0, 34.5, 35.5], "running_ornament__ro_bead_and_reel": [35.0, 3.0, 66.5, 35.5], "running_ornament__ro_greek_key_meander": [67.0, 3.0, 98.0, 35.5], "running_ornament__ro_guilloche": [2.0, 36.0, 49.5, 64.5], "running_ornament__ro_rosette_guilloche": [50.5, 36.0, 98.0, 64.5], "running_ornament__ro_anthemion_palmette": [2.0, 65.0, 51.5, 97.5], "running_ornament__ro_acroterion_palmette": [52.0, 64.0, 98.0, 97.5], "running_ornament__ro_vitruvian_scroll": [52.0, 65.0, 98.0, 97.5], "trusses_vaults__tv_hammerbeam_truss": [1.5, 3.0, 32.5, 35.5], "trusses_vaults__tv_queen_post_truss": [33.0, 3.0, 65.5, 35.5], "trusses_vaults__tv_scissors_truss": [66.0, 3.0, 98.5, 35.5], "trusses_vaults__tv_barrel_vault": [1.5, 36.0, 49.0, 64.5], "trusses_vaults__tv_fan_vault": [50.0, 36.0, 98.5, 64.5], "trusses_vaults__tv_transverse_arch_ribs": [1.5, 65.0, 48.0, 97.5], "trusses_vaults__tv_quadripartite_vault": [48.5, 65.0, 74.0, 97.5], "trusses_vaults__tv_sexpartite_vault": [74.5, 65.0, 98.5, 97.5], "styles_part3__sp3_stick_style": [2.0, 3.0, 24.8, 34.0], "styles_part3__sp3_shingle_style": [25.2, 3.0, 49.5, 34.0], "styles_part3__sp3_chateauesque": [50.0, 3.0, 73.5, 34.0], "styles_part3__sp3_egyptian_revival": [74.0, 3.0, 98.5, 34.0], "styles_part3__sp3_new_formalism": [1.5, 35.0, 26.2, 64.0], "styles_part3__sp3_googie": [26.4, 35.0, 50.0, 64.0], "styles_part3__sp3_hyperbolic_paraboloid": [50.5, 35.0, 73.5, 64.0], "styles_part3__sp3_postmodernism": [74.0, 35.0, 98.5, 64.0], "styles_part3__sp3_high_tech_diagrid": [1.5, 65.5, 19.5, 97.0], "styles_part3__sp3_deconstructivism": [19.6, 67.5, 42.5, 97.0], "styles_part3__sp3_dogtrot_ihouse": [42.8, 67.5, 62.5, 97.0], "styles_part3__sp3_monterey_splitlevel_aframe": [62.8, 67.5, 98.5, 97.0], "castle_fortifications__cf_merlon": [1.5, 2.0, 33.0, 52.0], "castle_fortifications__cf_crenel": [1.5, 2.0, 33.0, 52.0], "castle_fortifications__cf_machicolation": [1.5, 2.0, 33.0, 52.0], "castle_fortifications__cf_bartizan": [33.5, 2.0, 50.5, 37.0], "castle_fortifications__cf_arrow_loop": [51.0, 2.0, 66.0, 36.0], "castle_fortifications__cf_barbican_drawbridge": [1.5, 50.0, 34.0, 98.0], "castle_fortifications__cf_portcullis_murder_holes": [33.5, 37.5, 60.0, 98.0], "castle_fortifications__cf_keep_donjon": [60.5, 2.0, 98.5, 56.0], "castle_fortifications__cf_curtain_wall_allure": [60.5, 35.0, 98.5, 78.0], "castle_fortifications__cf_angled_bastion": [64.0, 64.0, 98.5, 98.5], "east_asian_architecture__ea_dougong": [2.0, 2.0, 31.0, 55.0], "east_asian_architecture__ea_irimoya_roof": [34.5, 2.0, 63.5, 34.5], "east_asian_architecture__ea_karahafu_gable": [70.5, 2.0, 98.0, 35.0], "east_asian_architecture__ea_swept_eaves_flying_rafters": [30.5, 30.5, 58.0, 64.5], "east_asian_architecture__ea_pagoda_sorin": [56.5, 5.0, 75.5, 52.0], "east_asian_architecture__ea_torii_gate": [75.0, 31.5, 96.0, 64.8], "east_asian_architecture__ea_paifang_archway": [2.0, 56.0, 33.5, 98.0], "east_asian_architecture__ea_engawa_veranda": [34.5, 66.5, 66.5, 99.0], "east_asian_architecture__ea_shoji_tokonoma": [69.5, 65.0, 98.0, 99.0], "south_asian_mesoamerican__sam_shikhara_amalaka": [1.8, 2.0, 33.0, 49.5], "south_asian_mesoamerican__sam_gopuram_vimana": [33.5, 2.0, 66.4, 49.5], "south_asian_mesoamerican__sam_buddhist_stupa": [66.8, 2.0, 98.2, 40.5], "south_asian_mesoamerican__sam_chhatri_pavilion": [1.8, 50.2, 23.8, 98.0], "south_asian_mesoamerican__sam_jali_screen": [24.2, 50.2, 57.5, 68.0], "south_asian_mesoamerican__sam_torana_gateway": [74.8, 40.5, 98.2, 66.8], "south_asian_mesoamerican__sam_talud_tablero": [24.2, 68.0, 48.2, 98.0], "south_asian_mesoamerican__sam_roof_comb": [48.5, 50.2, 76.8, 98.0], "south_asian_mesoamerican__sam_corbeled_maya_arch": [77.0, 67.2, 98.2, 98.0], "classical_temples_civic__ctc_in_antis_prostyle": [2.0, 4.0, 20.5, 42.0], "classical_temples_civic__ctc_amphiprostyle": [20.0, 4.0, 32.0, 42.0], "classical_temples_civic__ctc_peripteral_dipteral": [31.5, 4.0, 53.0, 42.0], "classical_temples_civic__ctc_pseudoperipteral": [53.5, 4.0, 71.5, 46.5], "classical_temples_civic__ctc_crepidoma_stylobate": [71.2, 4.0, 98.0, 48.5], "classical_temples_civic__ctc_pronaos_naos_opisthodomos": [71.2, 4.0, 98.0, 48.5], "classical_temples_civic__ctc_triumphal_arch": [2.0, 47.5, 22.5, 96.5], "classical_temples_civic__ctc_atrium_impluvium": [23.0, 51.0, 45.5, 96.5], "classical_temples_civic__ctc_peristyle_court": [46.0, 51.0, 74.0, 96.5], "classical_temples_civic__ctc_thermae_hypocaust": [74.5, 51.0, 98.0, 96.5], "sacred_liturgical_plan__slp_narthex": [1.5, 50.0, 26.0, 96.0], "sacred_liturgical_plan__slp_nave_aisles": [10.0, 32.0, 46.0, 94.0], "sacred_liturgical_plan__slp_transept_crossing": [22.0, 4.0, 58.0, 56.0], "sacred_liturgical_plan__slp_rood_screen": [30.0, 32.0, 56.0, 76.0], "sacred_liturgical_plan__slp_choir_chancel": [37.0, 14.0, 66.0, 60.0], "sacred_liturgical_plan__slp_apse": [45.0, 4.0, 74.0, 48.0], "sacred_liturgical_plan__slp_ambulatory": [49.0, 10.0, 75.0, 54.0], "sacred_liturgical_plan__slp_chevet_radiating_chapels": [72.0, 4.0, 98.5, 56.0], "sacred_liturgical_plan__slp_crypt_undercroft": [56.5, 52.0, 78.0, 98.0], "chimney_timber_framing__ctf_chimney_pots_cap": [2.0, 3.0, 30.5, 50.0], "chimney_timber_framing__ctf_chimney_cricket": [2.0, 24.0, 30.5, 76.0], "chimney_timber_framing__ctf_stack_flue_wythe": [2.0, 38.0, 30.5, 95.0], "chimney_timber_framing__ctf_timber_bent": [31.0, 5.0, 66.5, 58.0], "chimney_timber_framing__ctf_jettying": [31.0, 35.0, 58.0, 88.0], "chimney_timber_framing__ctf_summer_beam_girt": [35.0, 32.0, 66.5, 80.0], "chimney_timber_framing__ctf_knee_brace": [34.0, 45.0, 66.0, 93.0], "chimney_timber_framing__ctf_mortise_tenon_treenail": [52.0, 64.0, 67.5, 93.0], "chimney_timber_framing__ctf_balloon_framing": [66.8, 22.0, 83.5, 82.0], "chimney_timber_framing__ctf_platform_framing": [82.5, 24.0, 98.5, 86.0]};
 
     const TOPIC_PACK_META = {
       all: { label: "Quick 10 Mix (All 250)", plates: null },
@@ -6226,8 +6612,10 @@
           cropToggleBtn.innerHTML = useSingleCrop ? "&#128269; Full Plate" : "&#128444;&#65039; Single Crop";
         }
       }
+      const qMeta = getQuestionMetaForPart(targetPart);
       if (cropPill) {
         cropPill.style.display = useSingleCrop ? "block" : "none";
+        cropPill.textContent = qMeta.isWholeBuilding ? qMeta.wholeBadge : "🎯 Pinpointed Detail";
       }
 
       const peekBtn = document.getElementById("btn-quiz-study-peek");
@@ -6279,12 +6667,9 @@
       layer.innerHTML = "";
       const svgEl = createLeaderSvg(layer);
       const displayTargetPart = useSingleCrop ? mapPartToCropCoords(targetPart, cropBox) : targetPart;
-      const cleanCategory = useSingleCrop
-        ? targetPart.category.replace(/\s*\([^)]*\)\s*$/, "").trim()
-        : targetPart.category;
 
       if (state.quizMode === "pinpoint") {
-        document.getElementById("quiz-cat-kicker").textContent = `${cleanCategory.toUpperCase()} • TAP PIN ON DRAWING`;
+        document.getElementById("quiz-cat-kicker").textContent = `${qMeta.kicker} • TAP PIN ON DRAWING`;
         document.getElementById("quiz-target-term").textContent = q.term;
         clueEl.textContent = q.clue;
         mcContainer.style.display = "none";
@@ -6305,40 +6690,58 @@
           });
         }
       } else if (state.quizMode === "reverse_mc") {
-        document.getElementById("quiz-cat-kicker").textContent = cleanCategory.toUpperCase();
+        document.getElementById("quiz-cat-kicker").textContent = qMeta.kicker;
         document.getElementById("quiz-target-term").textContent = state.quizAnswered
           ? targetPart.name
-          : "What architectural term is highlighted (?)";
+          : qMeta.promptReverseMc;
         clueEl.textContent = targetPart.desc;
 
         if (!state.quizPeekAnnotated) {
-          appendLeaderPin(layer, svgEl, displayTargetPart, {
-            badgeHtml: state.quizAnswered
-              ? `${targetPart.pin}<span class="hotspot-label-tag">${targetPart.name}</span>`
-              : "?",
-            isMystery: true,
-            isCorrect: state.quizAnswered,
-            ariaLabel: `Mystery Pin ${targetPart.pin}`
-          });
+          if (qMeta.isWholeBuilding && useSingleCrop) {
+            const badge = document.createElement("div");
+            badge.className = "whole-specimen-badge" + (state.quizAnswered ? " correct" : "");
+            badge.innerHTML = state.quizAnswered
+              ? `&#10003; ${targetPart.name}`
+              : qMeta.wholeBadge;
+            layer.appendChild(badge);
+          } else {
+            appendLeaderPin(layer, svgEl, displayTargetPart, {
+              badgeHtml: state.quizAnswered
+                ? `${targetPart.pin}<span class="hotspot-label-tag">${targetPart.name}</span>`
+                : "?",
+              isMystery: true,
+              isCorrect: state.quizAnswered,
+              ariaLabel: `Mystery Pin ${targetPart.pin}`
+            });
+          }
         }
 
         renderMultipleChoiceButtons(mcContainer, q, targetPart);
       } else if (state.quizMode === "clue_mc") {
-        document.getElementById("quiz-cat-kicker").textContent = `${cleanCategory.toUpperCase()} • MATCH DEFINITION`;
+        document.getElementById("quiz-cat-kicker").textContent = `${qMeta.kicker} • MATCH DEFINITION`;
         document.getElementById("quiz-target-term").textContent = state.quizAnswered
           ? targetPart.name
-          : "Name This Architectural Element:";
+          : qMeta.promptClueMc;
         clueEl.textContent = targetPart.desc;
 
         if (!state.quizPeekAnnotated) {
-          appendLeaderPin(layer, svgEl, displayTargetPart, {
-            badgeHtml: state.quizAnswered
-              ? `${targetPart.pin}<span class="hotspot-label-tag">${targetPart.name}</span>`
-              : "?",
-            isMystery: !state.quizAnswered,
-            isCorrect: state.quizAnswered,
-            ariaLabel: `Pin ${targetPart.pin}`
-          });
+          if (qMeta.isWholeBuilding && useSingleCrop) {
+            const badge = document.createElement("div");
+            badge.className = "whole-specimen-badge" + (state.quizAnswered ? " correct" : "");
+            badge.innerHTML = state.quizAnswered
+              ? `&#10003; ${targetPart.name}`
+              : qMeta.wholeBadge;
+            layer.appendChild(badge);
+          } else {
+            appendLeaderPin(layer, svgEl, displayTargetPart, {
+              badgeHtml: state.quizAnswered
+                ? `${targetPart.pin}<span class="hotspot-label-tag">${targetPart.name}</span>`
+                : "?",
+              isMystery: !state.quizAnswered,
+              isCorrect: state.quizAnswered,
+              ariaLabel: `Pin ${targetPart.pin}`
+            });
+          }
         }
 
         renderMultipleChoiceButtons(mcContainer, q, targetPart);
